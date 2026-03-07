@@ -5,6 +5,11 @@ export const CONTACT = {
   address: 'Rua Doutor Romeo Ferro, 612',
   fullAddress: 'Rua Doutor Romeo Ferro, 612 — Jardim Bonfiglioli, São Paulo',
   instagramUrl: 'https://www.instagram.com/emsbarbearia/?hl=en',
+  instagramPostUrls: [
+    'https://www.instagram.com/p/C1234567890/',
+    'https://www.instagram.com/p/C0987654321/',
+    'https://www.instagram.com/p/C1122334455/',
+  ] as readonly string[],
   mapUrl:
     'https://www.google.com/maps/search/Rua%20Doutor%20Romeo%20Ferro%2C%20612/@-23.5796,-46.7346,17z?hl=pt-BR',
   mapEmbedUrl:

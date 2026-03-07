@@ -1,3 +1,4 @@
+import { InstagramCarousel } from '@/components/InstagramCarousel';
 import { CONTACT } from '@/config/contact';
 
 const SERVICOS = [
@@ -48,6 +49,14 @@ export function LandingPage() {
           >
             Agendar
           </a>
+          {CONTACT.instagramPostUrls.length > 0 && (
+            <div className="relative z-10 mt-16 w-full max-w-4xl">
+              <p className="mb-4 text-sm font-medium uppercase tracking-wider text-zinc-500">
+                Últimas do Instagram
+              </p>
+              <InstagramCarousel postUrls={CONTACT.instagramPostUrls} />
+            </div>
+          )}
         </div>
       </section>
 
