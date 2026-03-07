@@ -51,7 +51,7 @@ Os testes E2E ficam em `tests/` e rodam contra o frontend em modo dev. Suba o fr
 cd tests && npm install && npm test
 ```
 
-Opções: `npm run test:ui` (interface), `npm run test:headed` (browser visível), `npm run test:debug` (debug). Relatório: `tests/playwright-report/` (ou `npx playwright show-report` em `tests/`).
+Opções: `npm run test:ui` (interface), `npm run test:headed` (browser visível), `npm run test:debug` (debug). Cada execução grava vídeo (WebM); o relatório HTML referencia os vídeos em `playwright-report/data/`. Para ver o relatório **com os vídeos**, abra via servidor: `cd tests && npm run report` (ou `npx playwright show-report`). Abrir só o `index.html` no navegador pode não carregar os vídeos.
 
 ## Deploy local com k3d
 
