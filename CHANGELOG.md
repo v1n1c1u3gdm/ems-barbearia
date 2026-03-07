@@ -9,7 +9,20 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
-- (Alterações ainda não liberadas.)
+- Testes E2E com Playwright em `tests/`: navegação na home, links do header/footer, rotas diretas (`/examples`, `/admin`); relatório HTML e gravação de vídeo; base URL `http://localhost:5173` (front em dev).
+- Testes unitários no backend: JaCoCo com cobertura mínima 80% (exclusões: aplicação principal e `config/`); testes para `HelloController`, `AuthController`, `ExampleController` (`@WebMvcTest`).
+- Testes unitários no frontend: Vitest + React Testing Library + jsdom; cobertura mínima 80% (exclusões: entry, routes, config, lib, features e páginas não cobertas); testes para layout (PublicHeader, PublicFooter, PageLayout, AdminLayout), ProtectedAdminRoute, Button, LandingPage.
+- Link do Instagram no footer (ícone SVG) apontando para o perfil da barbearia; endereço completo e link no rodapé.
+- Config de contato: `fullAddress` e `instagramUrl` em `ui/src/config/contact.ts`.
+
+### Changed
+
+- Seção de contato da home: endereço removido da seção (mantidos título, texto, botões e mapa).
+- Footer: endereço exibido como `fullAddress` (Rua Doutor Romeo Ferro, 612 — Jardim Bonfiglioli, São Paulo); link do Instagram substitui texto por ícone.
+
+### Removed
+
+- Link "Admin" no footer da home (acesso ao admin apenas por URL direta).
 
 ## [0.1.0] – 2025-03-07
 

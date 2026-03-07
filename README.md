@@ -40,8 +40,8 @@ Projeto full-stack: backend Java/Spring Boot em `app/`, frontend React em `ui/`,
 
 ### Unitários
 
-- **Backend:** `cd app && mvn verify` — testes com JaCoCo; cobertura mínima 80%.
-- **Frontend:** `cd ui && npm run test` ou `npm run test:coverage` — Vitest + React Testing Library; cobertura mínima 80%.
+- **Backend:** `cd app && mvn verify` — testes com JaCoCo; cobertura mínima 80%. Relatório: `app/target/site/jacoco/index.html`.
+- **Frontend:** `cd ui && npm run test` ou `npm run test:coverage` — Vitest + React Testing Library; cobertura mínima 80%. Relatório: `ui/coverage/index.html`.
 
 ### E2E (Playwright)
 
@@ -51,7 +51,7 @@ Os testes E2E ficam em `tests/` e rodam contra o frontend em modo dev. Suba o fr
 cd tests && npm install && npm test
 ```
 
-Opções: `npm run test:ui` (interface), `npm run test:headed` (com browser visível), `npm run test:debug` (debug).
+Opções: `npm run test:ui` (interface), `npm run test:headed` (browser visível), `npm run test:debug` (debug). Relatório: `tests/playwright-report/` (ou `npx playwright show-report` em `tests/`).
 
 ## Deploy local com k3d
 
@@ -65,4 +65,5 @@ Para simular deploys em um cluster Kubernetes local:
 - `app/` – Backend Spring Boot (Maven, SpringDoc, Liquibase, MariaDB)
 - `ui/` – Frontend React (Vite, Tailwind, TanStack Query, React Router, React Hook Form, Zod)
 - `tests/` – Testes E2E com Playwright (navegação e interação na UI)
+- `adrs/` – Architecture Decision Records (decisões de arquitetura)
 - `k3d/` – Scripts e manifests para cluster k3d
