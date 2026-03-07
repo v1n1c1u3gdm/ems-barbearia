@@ -1,0 +1,11 @@
+{
+  "name": "ems-barbearia-root",
+  "private": true,
+  "description": "Root package for docs linting only",
+  "scripts": {
+    "lint:docs": "markdownlint -c .markdownlint.json 'README.md' 'CHANGELOG.md' 'AGENTS.md' 'adrs/**/*.md' 'k3d/README.md'"
+  },
+  "devDependencies": {
+    "markdownlint-cli": "^0.44.0"
+  }
+}

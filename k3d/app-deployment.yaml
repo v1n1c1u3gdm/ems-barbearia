@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: ems-barbearia
+  labels:
+    app: ems-barbearia
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ems-barbearia
+  template:
+    metadata:
+      labels:
+        app: ems-barbearia
+    spec:
+      containers:
+        - name: app
+          image: ems-barbearia/app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mariadb://mariadb.ems-barbearia.svc.cluster.local:3306/ems_barbearia"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-datasource
+                  key: SPRING_DATASOURCE_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-datasource
+                  key: SPRING_DATASOURCE_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  namespace: ems-barbearia
+spec:
+  selector:
+    app: ems-barbearia
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: LoadBalancer
