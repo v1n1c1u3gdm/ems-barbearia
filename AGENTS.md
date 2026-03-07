@@ -6,7 +6,7 @@ Este documento define regras obrigatórias para qualquer assistente (Cursor, Cop
 
 ## REGRA OBRIGATÓRIA: Execução de testes com cobertura
 
-**Após toda e qualquer implementação, execute os testes com cobertura antes de finalizar a tarefa.**
+**Após toda e qualquer implementação, execute os testes com cobertura antes de finalizar a tarefa. Target: 80% de cobertura em testes unitários (backend e frontend).**
 
 ### Backend (app/)
 
@@ -25,8 +25,8 @@ cd app && mvn verify
 cd ui && npm run test
 ```
 
-- Se houver script de testes (ex.: Vitest, React Testing Library), execute após alterações no front.
-- Mantenha ou estabeleça cobertura mínima de 80% quando ferramenta de cobertura estiver configurada.
+- Use Vitest e React Testing Library; execute `npm run test` ou `npm run test:coverage` após alterações no front.
+- Cobertura mínima exigida: 80% (enforced via `npm run test:coverage`).
 
 ---
 

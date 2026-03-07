@@ -107,9 +107,6 @@ export function LandingPage() {
               Agende conosco
             </a>
           </div>
-          <p className="mb-4 text-center text-sm text-zinc-500">
-            {CONTACT.address} — Jardim Bonfiglioli, São Paulo
-          </p>
           <div className="aspect-video w-full overflow-hidden rounded-lg border border-zinc-800">
             <iframe
               title="Localização EMS Barbearia"

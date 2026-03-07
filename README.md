@@ -23,10 +23,10 @@ Projeto full-stack: backend Java/Spring Boot em `app/`, frontend React em `ui/`,
    docker compose up -d
    ```
 
-4. Acesse em **http://localhost** (porta 80):
-   - **UI:** `http://localhost/`
-   - **API:** `http://localhost/api/` (ex.: `http://localhost/api/examples`)
-   - **Documentação da API:** `http://localhost/api/docs.html` (`/api/docs` redireciona para o mesmo)
+4. Acesse em <http://localhost> (porta 80):
+   - **UI:** <http://localhost/>
+   - **API:** <http://localhost/api/> (ex.: <http://localhost/api/examples>)
+   - **Documentação da API:** <http://localhost/api/docs.html> (`/api/docs` redireciona para o mesmo)
 
 5. Para rodar o frontend em modo dev (com proxy para a API):
 
@@ -34,7 +34,24 @@ Projeto full-stack: backend Java/Spring Boot em `app/`, frontend React em `ui/`,
    cd ui && npm install && npm run dev
    ```
 
-   Acesse `http://localhost:5173` (em dev a API continua em `http://localhost:8080` se o backend estiver rodando fora do Compose).
+   Acesse <http://localhost:5173> (em dev a API continua em <http://localhost:8080> se o backend estiver rodando fora do Compose).
+
+## Testes
+
+### Unitários
+
+- **Backend:** `cd app && mvn verify` — testes com JaCoCo; cobertura mínima 80%.
+- **Frontend:** `cd ui && npm run test` ou `npm run test:coverage` — Vitest + React Testing Library; cobertura mínima 80%.
+
+### E2E (Playwright)
+
+Os testes E2E ficam em `tests/` e rodam contra o frontend em modo dev. Suba o front antes (`cd ui && npm run dev`) e em outro terminal:
+
+```bash
+cd tests && npm install && npm test
+```
+
+Opções: `npm run test:ui` (interface), `npm run test:headed` (com browser visível), `npm run test:debug` (debug).
 
 ## Deploy local com k3d
 
@@ -47,4 +64,5 @@ Para simular deploys em um cluster Kubernetes local:
 
 - `app/` – Backend Spring Boot (Maven, SpringDoc, Liquibase, MariaDB)
 - `ui/` – Frontend React (Vite, Tailwind, TanStack Query, React Router, React Hook Form, Zod)
+- `tests/` – Testes E2E com Playwright (navegação e interação na UI)
 - `k3d/` – Scripts e manifests para cluster k3d

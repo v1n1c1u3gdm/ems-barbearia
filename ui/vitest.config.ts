@@ -1,0 +1,46 @@
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/test/',
+        'src/main.tsx',
+        'src/App.tsx',
+        'src/routes/index.tsx',
+        'src/config/**',
+        'src/lib/**',
+        'src/features/**',
+        'src/pages/AdminDashboardPage.tsx',
+        'src/pages/AdminLoginPage.tsx',
+        'src/pages/ExampleListPage.tsx',
+        'src/pages/HomePage.tsx',
+        'src/components/layout/Header.tsx',
+        'dist/**',
+        '**/*.config.*',
+        '**/vitest.config.*',
+        '**/*.d.ts',
+      ],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
+      },
+    },
+  },
+  resolve: {
+    alias: { '@': path.resolve(__dirname, './src') },
+  },
+});
