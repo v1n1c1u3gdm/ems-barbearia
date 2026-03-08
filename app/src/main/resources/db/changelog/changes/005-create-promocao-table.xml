@@ -5,12 +5,18 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="001-create-example-entity" author="ems-barbearia">
-        <createTable tableName="example_entity">
+    <changeSet id="005-create-promocao-table" author="ems-barbearia">
+        <createTable tableName="promocao">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="name" type="VARCHAR(255)">
+            <column name="titulo" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="descricao" type="TEXT"/>
+            <column name="valido_de" type="DATE"/>
+            <column name="valido_ate" type="DATE"/>
+            <column name="ativo" type="BOOLEAN" defaultValueBoolean="true">
                 <constraints nullable="false"/>
             </column>
             <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">

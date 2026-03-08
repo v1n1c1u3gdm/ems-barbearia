@@ -5,5 +5,11 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <include file="db/changelog/changes/001-create-example-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/002-create-admin-user-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/003-create-cliente-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/004-create-contato-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/005-create-promocao-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/006-create-agendamento-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/007-add-admin-user-alessandra.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/008-drop-example-table.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

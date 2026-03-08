@@ -24,7 +24,7 @@ export default defineConfig({
         'src/features/**',
         'src/pages/AdminDashboardPage.tsx',
         'src/pages/AdminLoginPage.tsx',
-        'src/pages/ExampleListPage.tsx',
+        'src/pages/admin/**',
         'src/pages/HomePage.tsx',
         'src/components/layout/Header.tsx',
         'dist/**',

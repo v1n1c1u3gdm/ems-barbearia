@@ -25,7 +25,7 @@ Projeto full-stack: backend Java/Spring Boot em `app/`, frontend React em `ui/`,
 
 4. Acesse em <http://localhost> (porta 80):
    - **UI:** <http://localhost/>
-   - **API:** <http://localhost/api/> (ex.: <http://localhost/api/examples>)
+   - **API:** <http://localhost/api/> (ex.: <http://localhost/api/docs.html>)
    - **Documentação da API:** <http://localhost/api/docs.html> (`/api/docs` redireciona para o mesmo)
 
 5. Para rodar o frontend em modo dev (com proxy para a API):
@@ -35,6 +35,12 @@ Projeto full-stack: backend Java/Spring Boot em `app/`, frontend React em `ui/`,
    ```
 
    Acesse <http://localhost:5173> (em dev a API continua em <http://localhost:8080> se o backend estiver rodando fora do Compose).
+
+## Área administrativa
+
+- **URL:** `/admin` (login em `/admin/login`).
+- **Credenciais padrão:** usuário `admin`, senha `password` (altere em produção).
+- **Áreas (placeholders):** Contatos (`/admin/contatos`), Promoções (`/admin/promocoes`), Agendamentos (`/admin/agendamentos`), Clientes (`/admin/clientes`).
 
 ## Testes
 

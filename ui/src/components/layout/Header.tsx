@@ -7,9 +7,6 @@ export function Header() {
         <Link to="/" className="text-lg font-semibold text-gray-800 hover:text-gray-600">
           EMS Barbearia
         </Link>
-        <Link to="/examples" className="text-gray-600 hover:text-gray-800">
-          Examples
-        </Link>
       </nav>
     </header>
   );

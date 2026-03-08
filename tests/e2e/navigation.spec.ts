@@ -41,13 +41,6 @@ test.describe('Navegação pública', () => {
 });
 
 test.describe('Rotas diretas', () => {
-  test('acesso a /examples exibe a página de examples', async ({ page }) => {
-    await page.goto('/examples');
-    await expect(
-      page.getByRole('heading', { name: 'Examples' }).or(page.getByText('Carregando...'))
-    ).toBeVisible({ timeout: 10000 });
-  });
-
   test('acesso a /admin redireciona para login', async ({ page }) => {
     await page.goto('/admin');
     await expect(page).toHaveURL(/\/admin\/login/);
