@@ -1,6 +1,14 @@
+import { useQuery } from '@tanstack/react-query';
 import { CONTACT } from '@/config/contact';
+import { fetchProverbioRandom } from '@/features/admin/api';
 
 export function PublicFooter() {
+  const { data: proverbio } = useQuery({
+    queryKey: ['public', 'proverbio-random'],
+    queryFn: fetchProverbioRandom,
+    staleTime: 1000 * 60 * 5,
+  });
+
   return (
     <footer className="border-t border-zinc-800 bg-zinc-950">
       <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row">
@@ -11,15 +19,24 @@ export function PublicFooter() {
           width="120"
           height="30"
         />
+        {proverbio && (
+          <blockquote className="max-w-md text-center text-sm italic text-zinc-500 sm:text-left">
+            <span className="font-normal not-italic text-zinc-600">{proverbio.referencia}</span>
+            {' — '}
+            {proverbio.texto}
+          </blockquote>
+        )}
         <div className="flex items-center gap-6 text-sm text-zinc-400">
-          <a
-            href={CONTACT.mapUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="transition hover:text-white"
-          >
-            {CONTACT.fullAddress}
-          </a>
+          <address className="not-italic">
+            <a
+              href={CONTACT.mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition hover:text-white"
+            >
+              {CONTACT.fullAddress}
+            </a>
+          </address>
           <a
             href={CONTACT.instagramUrl}
             target="_blank"

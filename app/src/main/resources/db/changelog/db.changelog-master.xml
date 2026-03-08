@@ -20,4 +20,5 @@
     <include file="db/changelog/changes/014-create-assinatura-table.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/015-create-configuracao-agenda.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/016-staff-disponibilidade-and-seed.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/017-create-proverbio-and-seed.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

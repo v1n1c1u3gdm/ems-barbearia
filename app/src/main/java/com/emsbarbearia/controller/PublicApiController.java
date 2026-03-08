@@ -2,9 +2,11 @@ package com.emsbarbearia.controller;
 
 import com.emsbarbearia.dto.AgendamentoRequest;
 import com.emsbarbearia.dto.AgendamentoResponse;
+import com.emsbarbearia.dto.ProverbioResponse;
 import com.emsbarbearia.dto.ServicoResponse;
 import com.emsbarbearia.dto.StaffResponse;
 import com.emsbarbearia.service.AgendamentoService;
+import com.emsbarbearia.service.ProverbioService;
 import com.emsbarbearia.service.ServicoService;
 import com.emsbarbearia.service.StaffService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,11 +26,14 @@ public class PublicApiController {
     private final ServicoService servicoService;
     private final StaffService staffService;
     private final AgendamentoService agendamentoService;
+    private final ProverbioService proverbioService;
 
-    public PublicApiController(ServicoService servicoService, StaffService staffService, AgendamentoService agendamentoService) {
+    public PublicApiController(ServicoService servicoService, StaffService staffService,
+                               AgendamentoService agendamentoService, ProverbioService proverbioService) {
         this.servicoService = servicoService;
         this.staffService = staffService;
         this.agendamentoService = agendamentoService;
+        this.proverbioService = proverbioService;
     }
 
     @GetMapping("/servicos")
@@ -41,6 +46,14 @@ public class PublicApiController {
     @Operation(summary = "List active staff for booking form")
     public List<StaffResponse> listStaff() {
         return staffService.listAtivos();
+    }
+
+    @GetMapping("/proverbios/random")
+    @Operation(summary = "Return a random biblical proverb")
+    public ResponseEntity<ProverbioResponse> getProverbioRandom() {
+        return proverbioService.getRandom()
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/agendamentos")

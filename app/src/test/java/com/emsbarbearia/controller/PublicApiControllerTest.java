@@ -9,9 +9,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.emsbarbearia.dto.AgendamentoResponse;
+import com.emsbarbearia.dto.ProverbioResponse;
 import com.emsbarbearia.dto.ServicoResponse;
 import com.emsbarbearia.dto.StaffResponse;
 import com.emsbarbearia.service.AgendamentoService;
+import com.emsbarbearia.service.ProverbioService;
 import com.emsbarbearia.service.ServicoService;
 import com.emsbarbearia.service.StaffService;
 import java.time.Instant;
@@ -39,6 +41,9 @@ class PublicApiControllerTest {
 
     @MockBean
     AgendamentoService agendamentoService;
+
+    @MockBean
+    ProverbioService proverbioService;
 
     @Test
     void listServicos_shouldReturn200AndActiveServicos() throws Exception {
@@ -84,6 +89,25 @@ class PublicApiControllerTest {
         mockMvc.perform(post("/agendamentos")
                 .contentType(APPLICATION_JSON)
                 .content("{\"clienteId\":999,\"servicoId\":1,\"staffId\":1,\"dataHora\":\"2025-06-01T10:00:00Z\",\"tipo\":\"FIRME\"}"))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getProverbioRandom_shouldReturn200AndBodyWhenProverbioFound() throws Exception {
+        ProverbioResponse response = new ProverbioResponse("Proverbs 1:7", "O temor ao SENHOR é o princípio do conhecimento.");
+        when(proverbioService.getRandom()).thenReturn(Optional.of(response));
+
+        mockMvc.perform(get("/proverbios/random"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.referencia").value("Proverbs 1:7"))
+            .andExpect(jsonPath("$.texto").value("O temor ao SENHOR é o princípio do conhecimento."));
+    }
+
+    @Test
+    void getProverbioRandom_shouldReturn404WhenNoProverbio() throws Exception {
+        when(proverbioService.getRandom()).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/proverbios/random"))
             .andExpect(status().isNotFound());
     }
 }

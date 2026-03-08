@@ -473,3 +473,14 @@ export async function createPublicAgendamento(body: AgendamentoRequest): Promise
   }
   return res.json() as Promise<AgendamentoResponse>;
 }
+
+export type ProverbioResponse = {
+  referencia: string;
+  texto: string;
+};
+
+export async function fetchProverbioRandom(): Promise<ProverbioResponse | null> {
+  const res = await fetch(`${API_BASE}/proverbios/random`);
+  if (!res.ok) return null;
+  return res.json() as Promise<ProverbioResponse>;
+}

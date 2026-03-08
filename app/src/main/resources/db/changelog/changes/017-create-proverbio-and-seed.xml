@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="017-create-proverbio-table" author="ems-barbearia">
+        <createTable tableName="proverbio">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="referencia" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="texto" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="017-seed-proverbios" author="ems-barbearia">
+        <preConditions onFail="MARK_RAN">
+            <rowCount tableName="proverbio" expectedRows="0"/>
+        </preConditions>
+        <sqlFile path="../data/proverbios.sql" relativeToChangelogFile="true" splitStatements="true"/>
+    </changeSet>
+</databaseChangeLog>
