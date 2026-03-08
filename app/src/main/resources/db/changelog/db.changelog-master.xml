@@ -12,4 +12,5 @@
     <include file="db/changelog/changes/006-create-agendamento-table.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/007-add-admin-user-alessandra.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/008-drop-example-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/009-add-admin-user-adm-alessandra.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

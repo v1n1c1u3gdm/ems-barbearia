@@ -1,0 +1,48 @@
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { vi } from 'vitest';
+import { AdminDashboardPage } from './AdminDashboardPage';
+
+vi.mock('@/features/admin/api', () => ({
+  fetchDashboardSummary: vi.fn(() =>
+    Promise.resolve({
+      contatos: 10,
+      clientes: 5,
+      agendamentos: 3,
+      promocoes: 2,
+    })
+  ),
+}));
+
+function wrap(ui: React.ReactNode) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+    },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        {ui}
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+}
+
+describe('AdminDashboardPage', () => {
+  it('renders Painel heading and Sair button', () => {
+    wrap(<AdminDashboardPage />);
+    expect(screen.getByRole('heading', { name: 'Painel' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
+  });
+
+  it('renders links to admin areas with counts when summary loads', async () => {
+    wrap(<AdminDashboardPage />);
+    await screen.findByText('(10)');
+    expect(screen.getByRole('link', { name: /Contatos.*10/ })).toHaveAttribute('href', '/admin/contatos');
+    expect(screen.getByRole('link', { name: /Promoções.*2/ })).toHaveAttribute('href', '/admin/promocoes');
+    expect(screen.getByRole('link', { name: /Agendamentos.*3/ })).toHaveAttribute('href', '/admin/agendamentos');
+    expect(screen.getByRole('link', { name: /Clientes.*5/ })).toHaveAttribute('href', '/admin/clientes');
+  });
+});

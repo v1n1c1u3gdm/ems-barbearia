@@ -39,8 +39,9 @@ Projeto full-stack: backend Java/Spring Boot em `app/`, frontend React em `ui/`,
 ## Área administrativa
 
 - **URL:** `/admin` (login em `/admin/login`).
-- **Credenciais padrão:** usuário `admin`, senha `password` (altere em produção).
-- **Áreas (placeholders):** Contatos (`/admin/contatos`), Promoções (`/admin/promocoes`), Agendamentos (`/admin/agendamentos`), Clientes (`/admin/clientes`).
+- **Credenciais padrão:** usuário `admin`, senha `password`; ou usuário `adm-alessandra`, senha `Emerson@123` (altere em produção).
+- **Painel:** após o login, o dashboard em `/admin` exibe totais de Contatos, Clientes, Agendamentos e Promoções, com links para cada área.
+- **Áreas:** Contatos (`/admin/contatos`), Promoções (`/admin/promocoes`), Agendamentos (`/admin/agendamentos`), Clientes (`/admin/clientes`).
 
 ## Testes
 

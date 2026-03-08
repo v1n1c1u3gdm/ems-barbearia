@@ -10,6 +10,21 @@ export type LoginResponse = {
   [key: string]: unknown;
 };
 
+export type DashboardSummary = {
+  contatos: number;
+  clientes: number;
+  agendamentos: number;
+  promocoes: number;
+};
+
+export async function fetchDashboardSummary(): Promise<DashboardSummary> {
+  const res = await fetch(`${API_BASE}/admin/dashboard/summary`);
+  if (!res.ok) {
+    throw new Error('Erro ao carregar resumo');
+  }
+  return res.json() as Promise<DashboardSummary>;
+}
+
 export async function login(
   payload: LoginPayload
 ): Promise<LoginResponse> {

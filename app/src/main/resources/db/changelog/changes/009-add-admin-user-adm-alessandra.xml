@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="009-add-admin-user-adm-alessandra" author="ems-barbearia">
+        <insert tableName="admin_user">
+            <column name="username" value="adm-alessandra"/>
+            <column name="password_hash" value="$2b$10$uyDYAdATY8Stm6LVGVuvPOiqaG/kAAwhs6fveJey0k/DAdMNWGSZW"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
