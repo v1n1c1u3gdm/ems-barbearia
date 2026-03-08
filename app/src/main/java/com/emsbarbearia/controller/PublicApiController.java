@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("")
 @Tag(name = "Public API", description = "Endpoints for public booking (no auth)")
 public class PublicApiController {
 

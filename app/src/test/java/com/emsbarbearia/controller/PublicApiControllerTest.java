@@ -45,7 +45,7 @@ class PublicApiControllerTest {
         ServicoResponse response = new ServicoResponse(1L, "Corte", null, null, null, true, 30, Instant.now());
         when(servicoService.listAtivos()).thenReturn(List.of(response));
 
-        mockMvc.perform(get("/api/servicos"))
+        mockMvc.perform(get("/servicos"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].titulo").value("Corte"));
@@ -56,7 +56,7 @@ class PublicApiControllerTest {
         StaffResponse response = new StaffResponse(1L, "João", true, Instant.now(), List.of());
         when(staffService.listAtivos()).thenReturn(List.of(response));
 
-        mockMvc.perform(get("/api/staff"))
+        mockMvc.perform(get("/staff"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].nome").value("João"));
@@ -69,7 +69,7 @@ class PublicApiControllerTest {
             Instant.now(), null, "FIRME", "PENDENTE", Instant.now());
         when(agendamentoService.create(any())).thenReturn(Optional.of(response));
 
-        mockMvc.perform(post("/api/agendamentos")
+        mockMvc.perform(post("/agendamentos")
                 .contentType(APPLICATION_JSON)
                 .content("{\"clienteId\":10,\"servicoId\":1,\"staffId\":1,\"dataHora\":\"2025-06-01T10:00:00Z\",\"tipo\":\"FIRME\"}"))
             .andExpect(status().isCreated())
@@ -81,7 +81,7 @@ class PublicApiControllerTest {
     void createAgendamento_shouldReturn404WhenClienteOrServicoOrStaffNotFound() throws Exception {
         when(agendamentoService.create(any())).thenReturn(Optional.empty());
 
-        mockMvc.perform(post("/api/agendamentos")
+        mockMvc.perform(post("/agendamentos")
                 .contentType(APPLICATION_JSON)
                 .content("{\"clienteId\":999,\"servicoId\":1,\"staffId\":1,\"dataHora\":\"2025-06-01T10:00:00Z\",\"tipo\":\"FIRME\"}"))
             .andExpect(status().isNotFound());
