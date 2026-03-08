@@ -8,8 +8,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -24,9 +26,14 @@ public class AgendamentoController {
     }
 
     @GetMapping
-    @Operation(summary = "List all agendamentos")
-    public List<AgendamentoResponse> list(@RequestParam(required = false) Long clienteId) {
-        return service.list(clienteId);
+    @Operation(summary = "List agendamentos with optional filters and date range")
+    public List<AgendamentoResponse> list(
+        @RequestParam(required = false) Long clienteId,
+        @RequestParam(required = false) Long staffId,
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant de,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant ate) {
+        return service.list(clienteId, staffId, status, de, ate);
     }
 
     @GetMapping("/{id}")
@@ -60,5 +67,17 @@ public class AgendamentoController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/status")
+    @Operation(summary = "Update agendamento status (e.g. APROVADO)")
+    public ResponseEntity<AgendamentoResponse> updateStatus(@PathVariable Long id, @RequestBody java.util.Map<String, String> body) {
+        String status = body != null ? body.get("status") : null;
+        if (status == null || status.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return service.updateStatus(id, status)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 }

@@ -6,9 +6,12 @@ import { LandingPage } from '@/pages/LandingPage';
 import { AdminLoginPage } from '@/pages/AdminLoginPage';
 import { AdminDashboardPage } from '@/pages/AdminDashboardPage';
 import { AdminContatosPage } from '@/pages/admin/AdminContatosPage';
-import { AdminPromocoesPage } from '@/pages/admin/AdminPromocoesPage';
+import { AdminServicosPage } from '@/pages/admin/AdminServicosPage';
+import { AdminStaffPage } from '@/pages/admin/AdminStaffPage';
 import { AdminAgendamentosPage } from '@/pages/admin/AdminAgendamentosPage';
+import { AdminAssinaturasPage } from '@/pages/admin/AdminAssinaturasPage';
 import { AdminClientesPage } from '@/pages/admin/AdminClientesPage';
+import { AgendarPage } from '@/pages/AgendarPage';
 
 const router = createBrowserRouter([
   {
@@ -16,6 +19,7 @@ const router = createBrowserRouter([
     element: <PageLayout />,
     children: [
       { index: true, element: <LandingPage /> },
+      { path: 'agendar', element: <AgendarPage /> },
     ],
   },
   {
@@ -28,8 +32,10 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <AdminDashboardPage /> },
           { path: 'contatos', element: <AdminContatosPage /> },
-          { path: 'promocoes', element: <AdminPromocoesPage /> },
+          { path: 'servicos', element: <AdminServicosPage /> },
+          { path: 'staff', element: <AdminStaffPage /> },
           { path: 'agendamentos', element: <AdminAgendamentosPage /> },
+          { path: 'assinaturas', element: <AdminAssinaturasPage /> },
           { path: 'clientes', element: <AdminClientesPage /> },
         ],
       },

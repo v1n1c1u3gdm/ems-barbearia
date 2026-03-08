@@ -6,11 +6,11 @@ Aceito.
 
 ## Contexto
 
-O painel pós-login (`/admin`) deve exibir um resumo útil: totais de Contatos, Clientes, Agendamentos e Promoções, com links para cada área. É necessário definir como o frontend obtém esses totais.
+O painel pós-login (`/admin`) deve exibir um resumo útil: totais de Contatos, Clientes, Agendamentos e Serviços, com links para cada área. É necessário definir como o frontend obtém esses totais.
 
 ## Decisão
 
-- **Endpoint único:** `GET /admin/dashboard/summary` retorna um JSON com quatro campos numéricos: `contatos`, `clientes`, `agendamentos`, `promocoes`, correspondentes aos `count()` dos respectivos repositórios JPA.
+- **Endpoint único:** `GET /admin/dashboard/summary` retorna um JSON com quatro campos numéricos: `contatos`, `clientes`, `agendamentos`, `servicos`, correspondentes aos `count()` dos respectivos repositórios JPA (o campo era `promocoes` até a refatoração Promoção → Serviço; ver ADR 0012).
 - **DTO:** `DashboardSummaryResponse` (record) com os quatro campos; serviço `DashboardService` agrega os repositórios e expõe um único método; controller `DashboardController` sob `@RequestMapping("/admin/dashboard")`.
 - **Frontend:** O dashboard usa TanStack Query para chamar esse endpoint uma vez; exibe os totais nos cards de cada área e mantém links para as rotas de listagem. Estados de loading e erro são tratados na UI.
 

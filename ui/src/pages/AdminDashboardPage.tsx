@@ -6,7 +6,7 @@ const ADMIN_AREAS = [
   { to: '/admin/agendamentos', label: 'Agendamentos', key: 'agendamentos' as const },
   { to: '/admin/clientes', label: 'Clientes', key: 'clientes' as const },
   { to: '/admin/contatos', label: 'Contatos', key: 'contatos' as const },
-  { to: '/admin/promocoes', label: 'Promoções', key: 'promocoes' as const },
+  { to: '/admin/servicos', label: 'Serviços', key: 'servicos' as const },
 ] as const;
 
 function formatUltimaAtualizacao(iso: string | null): string {

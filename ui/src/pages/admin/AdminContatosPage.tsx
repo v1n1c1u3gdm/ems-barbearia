@@ -11,6 +11,7 @@ import {
   type ContatoRequest,
 } from '@/features/admin/api';
 import { Modal } from '@/components/ui/Modal';
+import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 
 const emptyForm: ContatoRequest = { nome: '', email: '', telefone: '', mensagem: '' };
 
@@ -138,28 +139,10 @@ export function AdminContatosPage() {
     {
       name: 'Ações',
       cell: (row: ContatoResponse) => (
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => openDetail(row)}
-            className="rounded bg-zinc-600 px-2 py-1 text-xs text-white hover:bg-zinc-500"
-          >
-            Ver
-          </button>
-          <button
-            type="button"
-            onClick={() => openEdit(row)}
-            className="rounded bg-zinc-600 px-2 py-1 text-xs text-white hover:bg-zinc-500"
-          >
-            Editar
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDelete(row)}
-            className="rounded bg-red-800 px-2 py-1 text-xs text-white hover:bg-red-700"
-          >
-            Excluir
-          </button>
+        <div className="flex gap-1">
+          <button type="button" onClick={() => openDetail(row)} className="rounded p-1.5 bg-zinc-600 text-white hover:bg-zinc-500" title="Ver" aria-label="Ver"><Eye className="size-4" /></button>
+          <button type="button" onClick={() => openEdit(row)} className="rounded p-1.5 bg-zinc-600 text-white hover:bg-zinc-500" title="Editar" aria-label="Editar"><Pencil className="size-4" /></button>
+          <button type="button" onClick={() => handleDelete(row)} className="rounded p-1.5 bg-red-800 text-white hover:bg-red-700" title="Excluir" aria-label="Excluir"><Trash2 className="size-4" /></button>
         </div>
       ),
       ignoreRowClick: true,
@@ -175,13 +158,7 @@ export function AdminContatosPage() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">Contatos</h1>
-        <button
-          type="button"
-          onClick={() => openEdit(null)}
-          className="rounded bg-zinc-600 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-500"
-        >
-          Novo contato
-        </button>
+        <button type="button" onClick={() => openEdit(null)} className="flex items-center gap-2 rounded bg-zinc-600 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-500"><Plus className="size-4" /> Novo contato</button>
       </div>
 
       {isError && (

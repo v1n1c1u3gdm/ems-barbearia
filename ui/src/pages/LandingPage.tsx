@@ -1,26 +1,13 @@
+import { useQuery } from '@tanstack/react-query';
 import { InstagramCarousel } from '@/components/InstagramCarousel';
 import { CONTACT } from '@/config/contact';
-
-const SERVICOS = [
-  {
-    titulo: 'Barba',
-    descricao: 'Aparar, desenhar e finalizar com toalha quente e produtos premium.',
-  },
-  {
-    titulo: 'Cabelo',
-    descricao: 'Corte moderno e styling para o visual que você quer.',
-  },
-  {
-    titulo: 'Combo barba + cabelo',
-    descricao: 'Pacote completo: barba e cabelo com acabamento profissional.',
-  },
-  {
-    titulo: 'Sobrancelha',
-    descricao: 'Design e correção para um olhar mais definido.',
-  },
-];
+import { fetchPublicServicos } from '@/features/admin/api';
 
 export function LandingPage() {
+  const { data: servicos = [], isLoading, isError } = useQuery({
+    queryKey: ['public', 'servicos', 'landing'],
+    queryFn: () => fetchPublicServicos(),
+  });
   return (
     <>
       <section
@@ -70,20 +57,33 @@ export function LandingPage() {
           </h2>
           <p className="mb-12 text-center text-zinc-400">
             Serviços de barbearia e cuidado pessoal com qualidade e agilidade.
+            Preços variam de acordo com o procedimento e tamanho de cabelo.
           </p>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {SERVICOS.map((s) => (
-              <div
-                key={s.titulo}
-                className="rounded-lg border border-zinc-800 bg-zinc-900/80 p-6 transition hover:border-zinc-700"
-              >
-                <h3 className="mb-2 text-lg font-semibold text-white">
-                  {s.titulo}
-                </h3>
-                <p className="text-sm text-zinc-400">{s.descricao}</p>
-              </div>
-            ))}
-          </div>
+          {isLoading && (
+            <p className="text-center text-zinc-400">Carregando serviços...</p>
+          )}
+          {isError && (
+            <p className="text-center text-zinc-400">
+              Não foi possível carregar os serviços. Tente novamente mais tarde.
+            </p>
+          )}
+          {!isLoading && !isError && servicos.length > 0 && (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {servicos.map((s) => (
+                <div
+                  key={s.id}
+                  className="rounded-lg border border-zinc-800 bg-zinc-900/80 p-6 transition hover:border-zinc-700"
+                >
+                  <h3 className="mb-2 text-lg font-semibold text-white">
+                    {s.titulo}
+                  </h3>
+                  <p className="text-sm text-zinc-400">
+                    {s.descricao ?? 'Serviço com qualidade EMS Barbearia.'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

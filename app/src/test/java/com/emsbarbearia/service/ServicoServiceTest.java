@@ -5,10 +5,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.emsbarbearia.dto.PromocaoRequest;
-import com.emsbarbearia.dto.PromocaoResponse;
-import com.emsbarbearia.entity.Promocao;
-import com.emsbarbearia.repository.PromocaoRepository;
+import com.emsbarbearia.dto.ServicoRequest;
+import com.emsbarbearia.dto.ServicoResponse;
+import com.emsbarbearia.entity.Servico;
+import com.emsbarbearia.repository.ServicoRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -19,35 +19,36 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PromocaoServiceTest {
+class ServicoServiceTest {
 
     @Mock
-    PromocaoRepository repository;
+    ServicoRepository repository;
 
     @InjectMocks
-    PromocaoService service;
+    ServicoService service;
 
     @Test
     void list_shouldReturnAllWhenTituloIsBlank() {
-        Promocao entity = promocao(1L, "Black Friday", true);
+        Servico entity = servico(1L, "Corte", true, 30);
         when(repository.findAll()).thenReturn(List.of(entity));
 
-        List<PromocaoResponse> result = service.list(null);
+        List<ServicoResponse> result = service.list(null);
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).titulo()).isEqualTo("Black Friday");
+        assertThat(result.get(0).titulo()).isEqualTo("Corte");
         assertThat(result.get(0).ativo()).isTrue();
+        assertThat(result.get(0).duracaoMinutos()).isEqualTo(30);
     }
 
     @Test
     void list_shouldFilterByTituloWhenTituloGiven() {
-        Promocao entity = promocao(1L, "Promo", true);
-        when(repository.findByTituloContainingIgnoreCase("promo")).thenReturn(List.of(entity));
+        Servico entity = servico(1L, "Barba", true, 45);
+        when(repository.findByTituloContainingIgnoreCase("barba")).thenReturn(List.of(entity));
 
-        List<PromocaoResponse> result = service.list("promo");
+        List<ServicoResponse> result = service.list("barba");
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).titulo()).isEqualTo("Promo");
+        assertThat(result.get(0).titulo()).isEqualTo("Barba");
     }
 
     @Test
@@ -58,31 +59,32 @@ class PromocaoServiceTest {
 
     @Test
     void getById_shouldReturnResponseWhenFound() {
-        Promocao entity = promocao(1L, "Titulo", true);
+        Servico entity = servico(1L, "Corte", true, 30);
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
 
-        Optional<PromocaoResponse> result = service.getById(1L);
+        Optional<ServicoResponse> result = service.getById(1L);
 
         assertThat(result).isPresent();
         assertThat(result.get().id()).isEqualTo(1L);
     }
 
     @Test
-    void create_shouldUseAtivoTrueWhenRequestAtivoNull() {
-        PromocaoRequest request = new PromocaoRequest("New", null, null, null, null);
-        Promocao saved = promocao(1L, "New", true);
-        when(repository.save(any(Promocao.class))).thenReturn(saved);
+    void create_shouldUseAtivoTrueAndDuracao30WhenRequestNulls() {
+        ServicoRequest request = new ServicoRequest("New", null, null, null, null, null);
+        Servico saved = servico(1L, "New", true, 30);
+        when(repository.save(any(Servico.class))).thenReturn(saved);
 
-        PromocaoResponse result = service.create(request);
+        ServicoResponse result = service.create(request);
 
         assertThat(result.ativo()).isTrue();
-        verify(repository).save(any(Promocao.class));
+        assertThat(result.duracaoMinutos()).isEqualTo(30);
+        verify(repository).save(any(Servico.class));
     }
 
     @Test
     void update_shouldReturnEmptyWhenNotFound() {
         when(repository.findById(999L)).thenReturn(Optional.empty());
-        PromocaoRequest request = new PromocaoRequest("X", null, null, null, true);
+        ServicoRequest request = new ServicoRequest("X", null, null, null, true, 45);
         assertThat(service.update(999L, request)).isEmpty();
     }
 
@@ -99,12 +101,13 @@ class PromocaoServiceTest {
         verify(repository).deleteById(1L);
     }
 
-    private static Promocao promocao(Long id, String titulo, boolean ativo) {
-        Promocao p = new Promocao();
-        p.setId(id);
-        p.setTitulo(titulo);
-        p.setAtivo(ativo);
-        p.setCreatedAt(Instant.now());
-        return p;
+    private static Servico servico(Long id, String titulo, boolean ativo, Integer duracaoMinutos) {
+        Servico s = new Servico();
+        s.setId(id);
+        s.setTitulo(titulo);
+        s.setAtivo(ativo);
+        s.setDuracaoMinutos(duracaoMinutos);
+        s.setCreatedAt(Instant.now());
+        return s;
     }
 }

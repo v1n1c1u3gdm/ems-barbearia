@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="016-create-staff-disponibilidade" author="ems-barbearia">
+        <createTable tableName="staff_disponibilidade">
+            <column name="staff_id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="dia_semana" type="TINYINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="aberto" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="hora_inicio" type="TIME"/>
+            <column name="hora_fim" type="TIME"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="staff_disponibilidade" baseColumnNames="staff_id"
+            constraintName="fk_staff_disponibilidade_staff" referencedTableName="staff" referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="016-seed-staff-emerson-renan" author="ems-barbearia">
+        <preConditions onFail="MARK_RAN">
+            <rowCount tableName="staff" expectedRows="0"/>
+        </preConditions>
+        <insert tableName="staff">
+            <column name="nome" value="Emerson"/>
+            <column name="ativo" valueBoolean="true"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+        <insert tableName="staff">
+            <column name="nome" value="Renan Gabriel"/>
+            <column name="ativo" valueBoolean="true"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="016-seed-staff-disponibilidade" author="ems-barbearia">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="2">SELECT COUNT(*) FROM staff WHERE nome IN ('Emerson','Renan Gabriel')</sqlCheck>
+        </preConditions>
+        <comment>Emerson id=1, Renan Gabriel id=2. Dom(0)/Seg(1) fechado; Ter-Sex(2-5) 09-19; Sab(6) 09-16</comment>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="1"/><column name="dia_semana" valueNumeric="0"/><column name="aberto" valueBoolean="false"/></insert>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="1"/><column name="dia_semana" valueNumeric="1"/><column name="aberto" valueBoolean="false"/></insert>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="1"/><column name="dia_semana" valueNumeric="2"/><column name="aberto" valueBoolean="true"/><column name="hora_inicio" value="09:00:00"/><column name="hora_fim" value="19:00:00"/></insert>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="1"/><column name="dia_semana" valueNumeric="3"/><column name="aberto" valueBoolean="true"/><column name="hora_inicio" value="09:00:00"/><column name="hora_fim" value="19:00:00"/></insert>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="1"/><column name="dia_semana" valueNumeric="4"/><column name="aberto" valueBoolean="true"/><column name="hora_inicio" value="09:00:00"/><column name="hora_fim" value="19:00:00"/></insert>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="1"/><column name="dia_semana" valueNumeric="5"/><column name="aberto" valueBoolean="true"/><column name="hora_inicio" value="09:00:00"/><column name="hora_fim" value="19:00:00"/></insert>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="1"/><column name="dia_semana" valueNumeric="6"/><column name="aberto" valueBoolean="true"/><column name="hora_inicio" value="09:00:00"/><column name="hora_fim" value="16:00:00"/></insert>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="2"/><column name="dia_semana" valueNumeric="0"/><column name="aberto" valueBoolean="false"/></insert>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="2"/><column name="dia_semana" valueNumeric="1"/><column name="aberto" valueBoolean="false"/></insert>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="2"/><column name="dia_semana" valueNumeric="2"/><column name="aberto" valueBoolean="true"/><column name="hora_inicio" value="09:00:00"/><column name="hora_fim" value="19:00:00"/></insert>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="2"/><column name="dia_semana" valueNumeric="3"/><column name="aberto" valueBoolean="true"/><column name="hora_inicio" value="09:00:00"/><column name="hora_fim" value="19:00:00"/></insert>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="2"/><column name="dia_semana" valueNumeric="4"/><column name="aberto" valueBoolean="true"/><column name="hora_inicio" value="09:00:00"/><column name="hora_fim" value="19:00:00"/></insert>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="2"/><column name="dia_semana" valueNumeric="5"/><column name="aberto" valueBoolean="true"/><column name="hora_inicio" value="09:00:00"/><column name="hora_fim" value="19:00:00"/></insert>
+        <insert tableName="staff_disponibilidade"><column name="staff_id" valueNumeric="2"/><column name="dia_semana" valueNumeric="6"/><column name="aberto" valueBoolean="true"/><column name="hora_inicio" value="09:00:00"/><column name="hora_fim" value="16:00:00"/></insert>
+    </changeSet>
+</databaseChangeLog>

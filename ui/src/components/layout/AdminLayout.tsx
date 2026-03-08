@@ -3,9 +3,11 @@ import { clearStoredAuth } from '@/config/auth';
 
 const ADMIN_NAV_MIDDLE = [
   { to: '/admin/agendamentos', label: 'Agendamentos' },
+  { to: '/admin/assinaturas', label: 'Assinaturas' },
   { to: '/admin/clientes', label: 'Clientes' },
   { to: '/admin/contatos', label: 'Contatos' },
-  { to: '/admin/promocoes', label: 'Promoções' },
+  { to: '/admin/servicos', label: 'Serviços' },
+  { to: '/admin/staff', label: 'Staff' },
 ] as const;
 
 const PUBLIC_NAV = [

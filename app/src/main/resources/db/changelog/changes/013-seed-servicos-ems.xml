@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="013-seed-servicos-ems" author="ems-barbearia">
+        <preConditions onFail="MARK_RAN">
+            <rowCount tableName="servico" expectedRows="0"/>
+        </preConditions>
+        <insert tableName="servico">
+            <column name="titulo" value="Corte"/>
+            <column name="descricao" value="Corte masculino com acabamento e estilo personalizado."/>
+            <column name="ativo" valueBoolean="true"/>
+            <column name="duracao_minutos" valueNumeric="45"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+        <insert tableName="servico">
+            <column name="titulo" value="Barba"/>
+            <column name="descricao" value="Aparar, desenhar e finalizar com toalha quente e produtos premium."/>
+            <column name="ativo" valueBoolean="true"/>
+            <column name="duracao_minutos" valueNumeric="30"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+        <insert tableName="servico">
+            <column name="titulo" value="Sobrancelha"/>
+            <column name="descricao" value="Design e correção para um olhar mais definido."/>
+            <column name="ativo" valueBoolean="true"/>
+            <column name="duracao_minutos" valueNumeric="20"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+        <insert tableName="servico">
+            <column name="titulo" value="Barboterapia"/>
+            <column name="descricao" value="Tratamento completo para barba com higienização e hidratação."/>
+            <column name="ativo" valueBoolean="true"/>
+            <column name="duracao_minutos" valueNumeric="40"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+        <insert tableName="servico">
+            <column name="titulo" value="Hidratação"/>
+            <column name="descricao" value="Hidratação capilar para cabelos saudáveis e com brilho."/>
+            <column name="ativo" valueBoolean="true"/>
+            <column name="duracao_minutos" valueNumeric="50"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+        <insert tableName="servico">
+            <column name="titulo" value="Alisante"/>
+            <column name="descricao" value="Tratamento alisante para o resultado que você deseja."/>
+            <column name="ativo" valueBoolean="true"/>
+            <column name="duracao_minutos" valueNumeric="60"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+        <insert tableName="servico">
+            <column name="titulo" value="Pigmentação"/>
+            <column name="descricao" value="Técnica de pigmentação para realce e definição."/>
+            <column name="ativo" valueBoolean="true"/>
+            <column name="duracao_minutos" valueNumeric="45"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+        <insert tableName="servico">
+            <column name="titulo" value="Luzes"/>
+            <column name="descricao" value="Luzes e mechas para dar movimento e estilo ao cabelo."/>
+            <column name="ativo" valueBoolean="true"/>
+            <column name="duracao_minutos" valueNumeric="90"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+        <insert tableName="servico">
+            <column name="titulo" value="Platinado"/>
+            <column name="descricao" value="Descoloração e platinado profissional."/>
+            <column name="ativo" valueBoolean="true"/>
+            <column name="duracao_minutos" valueNumeric="120"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

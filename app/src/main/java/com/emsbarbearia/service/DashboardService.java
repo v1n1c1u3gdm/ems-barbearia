@@ -4,7 +4,7 @@ import com.emsbarbearia.dto.DashboardSummaryResponse;
 import com.emsbarbearia.repository.AgendamentoRepository;
 import com.emsbarbearia.repository.ClienteRepository;
 import com.emsbarbearia.repository.ContatoRepository;
-import com.emsbarbearia.repository.PromocaoRepository;
+import com.emsbarbearia.repository.ServicoRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -17,18 +17,18 @@ public class DashboardService {
     private final ContatoRepository contatoRepository;
     private final ClienteRepository clienteRepository;
     private final AgendamentoRepository agendamentoRepository;
-    private final PromocaoRepository promocaoRepository;
+    private final ServicoRepository servicoRepository;
 
     public DashboardService(
         ContatoRepository contatoRepository,
         ClienteRepository clienteRepository,
         AgendamentoRepository agendamentoRepository,
-        PromocaoRepository promocaoRepository
+        ServicoRepository servicoRepository
     ) {
         this.contatoRepository = contatoRepository;
         this.clienteRepository = clienteRepository;
         this.agendamentoRepository = agendamentoRepository;
-        this.promocaoRepository = promocaoRepository;
+        this.servicoRepository = servicoRepository;
     }
 
     public DashboardSummaryResponse getSummary() {
@@ -36,7 +36,7 @@ public class DashboardService {
             contatoRepository.findLatestCreatedAt(),
             clienteRepository.findLatestCreatedAt(),
             agendamentoRepository.findLatestCreatedAt(),
-            promocaoRepository.findLatestCreatedAt()
+            servicoRepository.findLatestCreatedAt()
         )
             .flatMap(Optional::stream)
             .max(Instant::compareTo)
@@ -45,7 +45,7 @@ public class DashboardService {
             contatoRepository.count(),
             clienteRepository.count(),
             agendamentoRepository.count(),
-            promocaoRepository.count(),
+            servicoRepository.count(),
             ultima
         );
     }

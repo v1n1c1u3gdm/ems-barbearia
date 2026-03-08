@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="014-create-assinatura-table" author="ems-barbearia">
+        <createTable tableName="assinatura">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="cliente_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_assinatura_cliente" references="cliente(id)"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="assinatura_servico">
+            <column name="assinatura_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_assinatura_servico_assinatura" references="assinatura(id)"/>
+            </column>
+            <column name="servico_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_assinatura_servico_servico" references="servico(id)"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="assinatura_servico" columnNames="assinatura_id, servico_id"/>
+    </changeSet>
+</databaseChangeLog>

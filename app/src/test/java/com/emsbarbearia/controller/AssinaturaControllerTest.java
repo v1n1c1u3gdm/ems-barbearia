@@ -12,8 +12,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.emsbarbearia.dto.PromocaoResponse;
-import com.emsbarbearia.service.PromocaoService;
+import com.emsbarbearia.dto.AssinaturaResponse;
+import com.emsbarbearia.dto.ServicoSummary;
+import com.emsbarbearia.service.AssinaturaService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -24,66 +25,83 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(PromocaoController.class)
+@WebMvcTest(AssinaturaController.class)
 @AutoConfigureMockMvc(addFilters = false)
-class PromocaoControllerTest {
+class AssinaturaControllerTest {
 
     @Autowired
     MockMvc mockMvc;
 
     @MockBean
-    PromocaoService service;
+    AssinaturaService service;
 
     @Test
     void list_shouldReturn200AndAllWhenNoFilter() throws Exception {
-        PromocaoResponse response = new PromocaoResponse(1L, "Black Friday", null, null, null, true, Instant.now());
+        AssinaturaResponse response = new AssinaturaResponse(
+            1L, 10L, "Cliente A", List.of(new ServicoSummary(1L, "Corte")), Instant.now());
         when(service.list(null)).thenReturn(List.of(response));
 
-        mockMvc.perform(get("/admin/promocoes"))
+        mockMvc.perform(get("/admin/assinaturas"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].id").value(1))
-            .andExpect(jsonPath("$[0].titulo").value("Black Friday"));
+            .andExpect(jsonPath("$[0].clienteNome").value("Cliente A"));
     }
 
     @Test
     void getById_shouldReturn200WhenFound() throws Exception {
-        PromocaoResponse response = new PromocaoResponse(1L, "Promo", "desc", null, null, true, Instant.now());
+        AssinaturaResponse response = new AssinaturaResponse(
+            1L, 10L, "Cliente", List.of(new ServicoSummary(1L, "Corte")), Instant.now());
         when(service.getById(1L)).thenReturn(Optional.of(response));
-        mockMvc.perform(get("/admin/promocoes/1")).andExpect(status().isOk()).andExpect(jsonPath("$.id").value(1));
+
+        mockMvc.perform(get("/admin/assinaturas/1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(1));
     }
 
     @Test
     void getById_shouldReturn404WhenNotFound() throws Exception {
         when(service.getById(999L)).thenReturn(Optional.empty());
-        mockMvc.perform(get("/admin/promocoes/999")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/admin/assinaturas/999")).andExpect(status().isNotFound());
     }
 
     @Test
-    void create_shouldReturn201WithBody() throws Exception {
-        PromocaoResponse response = new PromocaoResponse(1L, "New", null, null, null, true, Instant.now());
-        when(service.create(any())).thenReturn(response);
+    void create_shouldReturn201WhenClienteExists() throws Exception {
+        AssinaturaResponse response = new AssinaturaResponse(
+            1L, 10L, "C", List.of(new ServicoSummary(1L, "Corte")), Instant.now());
+        when(service.create(any())).thenReturn(Optional.of(response));
 
-        mockMvc.perform(post("/admin/promocoes")
+        mockMvc.perform(post("/admin/assinaturas")
                 .contentType(APPLICATION_JSON)
-                .content("{\"titulo\":\"New\"}"))
+                .content("{\"clienteId\":10,\"servicoIds\":[1]}"))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.id").value(1));
     }
 
     @Test
+    void create_shouldReturn404WhenClienteNotFound() throws Exception {
+        when(service.create(any())).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/admin/assinaturas")
+                .contentType(APPLICATION_JSON)
+                .content("{\"clienteId\":999,\"servicoIds\":[1]}"))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
     void update_shouldReturn404WhenNotFound() throws Exception {
         when(service.update(eq(999L), any())).thenReturn(Optional.empty());
-        mockMvc.perform(put("/admin/promocoes/999")
+
+        mockMvc.perform(put("/admin/assinaturas/999")
                 .contentType(APPLICATION_JSON)
-                .content("{\"titulo\":\"Any\"}"))
+                .content("{\"clienteId\":1,\"servicoIds\":[1]}"))
             .andExpect(status().isNotFound());
     }
 
     @Test
     void delete_shouldReturn204WhenExists() throws Exception {
         when(service.delete(1L)).thenReturn(true);
-        mockMvc.perform(delete("/admin/promocoes/1")).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/admin/assinaturas/1")).andExpect(status().isNoContent());
         verify(service).delete(1L);
     }
 }

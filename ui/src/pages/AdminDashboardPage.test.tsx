@@ -10,7 +10,7 @@ vi.mock('@/features/admin/api', () => ({
       contatos: 10,
       clientes: 5,
       agendamentos: 3,
-      promocoes: 2,
+      servicos: 2,
       ultimaAtualizacao: '2025-03-07T12:00:00Z',
     })
   ),
@@ -41,7 +41,7 @@ describe('AdminDashboardPage', () => {
     wrap(<AdminDashboardPage />);
     await screen.findByText('(10)');
     expect(screen.getByRole('link', { name: /Contatos.*10/ })).toHaveAttribute('href', '/admin/contatos');
-    expect(screen.getByRole('link', { name: /Promoções.*2/ })).toHaveAttribute('href', '/admin/promocoes');
+    expect(screen.getByRole('link', { name: /Serviços.*2/ })).toHaveAttribute('href', '/admin/servicos');
     expect(screen.getByRole('link', { name: /Agendamentos.*3/ })).toHaveAttribute('href', '/admin/agendamentos');
     expect(screen.getByRole('link', { name: /Clientes.*5/ })).toHaveAttribute('href', '/admin/clientes');
   });

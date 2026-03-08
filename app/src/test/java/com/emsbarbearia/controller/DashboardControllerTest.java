@@ -36,7 +36,7 @@ class DashboardControllerTest {
             .andExpect(jsonPath("$.contatos").value(10))
             .andExpect(jsonPath("$.clientes").value(5))
             .andExpect(jsonPath("$.agendamentos").value(3))
-            .andExpect(jsonPath("$.promocoes").value(2))
+            .andExpect(jsonPath("$.servicos").value(2))
             .andExpect(jsonPath("$.ultimaAtualizacao").value("2025-03-07T12:00:00Z"));
     }
 }

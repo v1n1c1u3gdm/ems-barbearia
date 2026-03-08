@@ -18,8 +18,19 @@ public class Agendamento {
     @Column(name = "data_hora", nullable = false)
     private Instant dataHora;
 
-    @Column(length = 255)
-    private String servico;
+    @Column(name = "data_hora_fim")
+    private Instant dataHoraFim;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "servico_id")
+    private Servico servico;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "staff_id")
+    private Staff staff;
+
+    @Column(nullable = false, length = 20)
+    private String tipo;
 
     @Column(nullable = false, length = 50)
     private String status;
@@ -29,56 +40,25 @@ public class Agendamento {
 
     @PrePersist
     protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = Instant.now();
-        }
+        if (createdAt == null) createdAt = Instant.now();
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Cliente getCliente() {
-        return cliente;
-    }
-
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
-    }
-
-    public Instant getDataHora() {
-        return dataHora;
-    }
-
-    public void setDataHora(Instant dataHora) {
-        this.dataHora = dataHora;
-    }
-
-    public String getServico() {
-        return servico;
-    }
-
-    public void setServico(String servico) {
-        this.servico = servico;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Cliente getCliente() { return cliente; }
+    public void setCliente(Cliente cliente) { this.cliente = cliente; }
+    public Instant getDataHora() { return dataHora; }
+    public void setDataHora(Instant dataHora) { this.dataHora = dataHora; }
+    public Instant getDataHoraFim() { return dataHoraFim; }
+    public void setDataHoraFim(Instant dataHoraFim) { this.dataHoraFim = dataHoraFim; }
+    public Servico getServico() { return servico; }
+    public void setServico(Servico servico) { this.servico = servico; }
+    public Staff getStaff() { return staff; }
+    public void setStaff(Staff staff) { this.staff = staff; }
+    public String getTipo() { return tipo; }
+    public void setTipo(String tipo) { this.tipo = tipo; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

@@ -32,6 +32,12 @@ export function PublicHeader() {
           >
             Contato
           </a>
+          <Link
+            to="/agendar"
+            className="rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-amber-400"
+          >
+            Agendar
+          </Link>
         </div>
       </nav>
     </header>

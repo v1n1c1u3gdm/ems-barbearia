@@ -16,8 +16,8 @@ public record DashboardSummaryResponse(
     @Schema(description = "Total agendamentos")
     long agendamentos,
 
-    @Schema(description = "Total promocoes")
-    long promocoes,
+    @Schema(description = "Total servicos")
+    long servicos,
 
     @Schema(description = "Timestamp of the most recent creation across all entities, null if no data")
     Instant ultimaAtualizacao

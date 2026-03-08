@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -36,8 +37,8 @@ class AgendamentoControllerTest {
 
     @Test
     void list_shouldReturn200AndAllWhenNoFilter() throws Exception {
-        var response = new AgendamentoResponse(1L, 10L, "Cliente A", Instant.now(), "Corte", "PENDENTE", Instant.now());
-        when(service.list(null)).thenReturn(List.of(response));
+        var response = new AgendamentoResponse(1L, 10L, "Cliente A", 1L, "Corte", 1L, "João", Instant.now(), null, "FIRME", "PENDENTE", Instant.now());
+        when(service.list(null, null, null, null, null)).thenReturn(List.of(response));
 
         mockMvc.perform(get("/admin/agendamentos"))
             .andExpect(status().isOk())
@@ -48,7 +49,7 @@ class AgendamentoControllerTest {
 
     @Test
     void getById_shouldReturn200WhenFound() throws Exception {
-        var response = new AgendamentoResponse(1L, 10L, "Cliente", Instant.now(), null, "CONFIRMADO", Instant.now());
+        var response = new AgendamentoResponse(1L, 10L, "Cliente", null, null, null, null, Instant.now(), null, "FIRME", "CONFIRMADO", Instant.now());
         when(service.getById(1L)).thenReturn(Optional.of(response));
 
         mockMvc.perform(get("/admin/agendamentos/1"))
@@ -66,12 +67,12 @@ class AgendamentoControllerTest {
 
     @Test
     void create_shouldReturn201WhenClienteExists() throws Exception {
-        var response = new AgendamentoResponse(1L, 10L, "C", Instant.now(), "Corte", "PENDENTE", Instant.now());
+        var response = new AgendamentoResponse(1L, 10L, "C", 1L, "Corte", 1L, "João", Instant.now(), null, "FIRME", "PENDENTE", Instant.now());
         when(service.create(any())).thenReturn(Optional.of(response));
 
         mockMvc.perform(post("/admin/agendamentos")
                 .contentType(APPLICATION_JSON)
-                .content("{\"clienteId\":10,\"dataHora\":\"2025-06-01T10:00:00Z\",\"status\":\"PENDENTE\"}"))
+                .content("{\"clienteId\":10,\"servicoId\":1,\"staffId\":1,\"dataHora\":\"2025-06-01T10:00:00Z\",\"tipo\":\"FIRME\",\"status\":\"PENDENTE\"}"))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.id").value(1));
     }
@@ -82,7 +83,7 @@ class AgendamentoControllerTest {
 
         mockMvc.perform(post("/admin/agendamentos")
                 .contentType(APPLICATION_JSON)
-                .content("{\"clienteId\":999,\"dataHora\":\"2025-06-01T10:00:00Z\",\"status\":\"PENDENTE\"}"))
+                .content("{\"clienteId\":999,\"servicoId\":1,\"staffId\":1,\"dataHora\":\"2025-06-01T10:00:00Z\",\"tipo\":\"FIRME\",\"status\":\"PENDENTE\"}"))
             .andExpect(status().isNotFound());
     }
 
@@ -92,7 +93,7 @@ class AgendamentoControllerTest {
 
         mockMvc.perform(put("/admin/agendamentos/999")
                 .contentType(APPLICATION_JSON)
-                .content("{\"clienteId\":1,\"dataHora\":\"2025-06-01T10:00:00Z\",\"status\":\"PENDENTE\"}"))
+                .content("{\"clienteId\":1,\"servicoId\":1,\"staffId\":1,\"dataHora\":\"2025-06-01T10:00:00Z\",\"tipo\":\"FIRME\",\"status\":\"PENDENTE\"}"))
             .andExpect(status().isNotFound());
     }
 
@@ -103,5 +104,27 @@ class AgendamentoControllerTest {
         mockMvc.perform(delete("/admin/agendamentos/1"))
             .andExpect(status().isNoContent());
         verify(service).delete(1L);
+    }
+
+    @Test
+    void updateStatus_shouldReturn200WhenFound() throws Exception {
+        var response = new AgendamentoResponse(1L, 10L, "C", 1L, "Corte", 1L, "João", Instant.now(), null, "FIRME", "APROVADO", Instant.now());
+        when(service.updateStatus(1L, "APROVADO")).thenReturn(Optional.of(response));
+
+        mockMvc.perform(patch("/admin/agendamentos/1/status")
+                .contentType(APPLICATION_JSON)
+                .content("{\"status\":\"APROVADO\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("APROVADO"));
+    }
+
+    @Test
+    void updateStatus_shouldReturn404WhenNotFound() throws Exception {
+        when(service.updateStatus(999L, "APROVADO")).thenReturn(Optional.empty());
+
+        mockMvc.perform(patch("/admin/agendamentos/999/status")
+                .contentType(APPLICATION_JSON)
+                .content("{\"status\":\"APROVADO\"}"))
+            .andExpect(status().isNotFound());
     }
 }
