@@ -70,6 +70,8 @@ Os testes E2E ficam em `tests/` e rodam contra o frontend em modo dev. Suba o fr
 cd tests && npm install && npm test
 ```
 
+A maior parte dos cenários (navegação, página Agendar, proteção de rotas admin, footer) depende apenas do frontend. Os testes de **login admin** em `admin-login.spec.ts` precisam do backend em execução: o cenário de credenciais inválidas espera resposta 401 da API; o cenário de login com sucesso só roda quando `E2E_ADMIN_USER` e `E2E_ADMIN_PASSWORD` estão definidas (ex.: usuário/senha de seed do backend).
+
 Opções: `npm run test:ui` (interface), `npm run test:headed` (browser visível), `npm run test:debug` (debug). Cada execução grava vídeo (WebM); o relatório HTML referencia os vídeos em `playwright-report/data/`. Para ver o relatório **com os vídeos**, abra via servidor: `cd tests && npm run report` (ou `npx playwright show-report`). Abrir só o `index.html` no navegador pode não carregar os vídeos.
 
 ## Deploy local com k3d

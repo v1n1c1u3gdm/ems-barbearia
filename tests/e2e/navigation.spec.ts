@@ -38,6 +38,15 @@ test.describe('Navegação pública', () => {
     await page.goto('/');
     await expect(page.getByRole('link', { name: 'Admin' })).not.toBeVisible();
   });
+
+  test('link Agendar no header leva a /agendar e exibe título', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('navigation').getByRole('link', { name: 'Agendar' }).click();
+    await expect(page).toHaveURL(/\/agendar$/);
+    await expect(
+      page.getByRole('heading', { name: 'Agendar horário' })
+    ).toBeVisible();
+  });
 });
 
 test.describe('Rotas diretas', () => {
@@ -45,5 +54,30 @@ test.describe('Rotas diretas', () => {
     await page.goto('/admin');
     await expect(page).toHaveURL(/\/admin\/login/);
     await expect(page.getByRole('heading', { name: 'Acesso restrito' })).toBeVisible();
+  });
+});
+
+test.describe('Footer', () => {
+  test('home exibe footer com copyright', async ({ page }) => {
+    await page.goto('/');
+    const footer = page.locator('footer');
+    await expect(footer).toBeVisible();
+    await expect(footer.getByText(/©\s*\d{4}/)).toBeVisible();
+  });
+});
+
+test.describe('Proteção admin', () => {
+  test('acesso direto a /admin/servicos sem login redireciona para login', async ({
+    page,
+  }) => {
+    await page.goto('/admin/servicos');
+    await expect(page).toHaveURL(/\/admin\/login/);
+  });
+
+  test('acesso direto a /admin/clientes sem login redireciona para login', async ({
+    page,
+  }) => {
+    await page.goto('/admin/clientes');
+    await expect(page).toHaveURL(/\/admin\/login/);
   });
 });

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Globe, Apple, MessageCircle } from 'lucide-react';
 import { register, login, requestOtp, verifyOtp, getGoogleOAuthUrl, getAppleOAuthUrl } from './api';
 import { setPublicToken } from './auth';
 type Tab = 'choose' | 'register' | 'login' | 'phone';
@@ -95,12 +96,14 @@ export function AgendarAuthGate({ onAuthenticated }: Props) {
             href={getGoogleOAuthUrl()}
             className="flex items-center justify-center gap-2 rounded-md border border-zinc-600 bg-zinc-800 px-4 py-3 text-zinc-200 hover:bg-zinc-700"
           >
+            <Globe className="size-5 shrink-0" aria-hidden />
             Continuar com Google
           </a>
           <a
             href={getAppleOAuthUrl()}
             className="flex items-center justify-center gap-2 rounded-md border border-zinc-600 bg-zinc-800 px-4 py-3 text-zinc-200 hover:bg-zinc-700"
           >
+            <Apple className="size-5 shrink-0" aria-hidden />
             Continuar com Apple
           </a>
           <button
@@ -108,6 +111,7 @@ export function AgendarAuthGate({ onAuthenticated }: Props) {
             onClick={() => setTab('phone')}
             className="flex items-center justify-center gap-2 rounded-md border border-zinc-600 bg-zinc-800 px-4 py-3 text-zinc-200 hover:bg-zinc-700"
           >
+            <MessageCircle className="size-5 shrink-0" aria-hidden />
             Continuar com telefone / WhatsApp
           </button>
           <div className="my-2 border-t border-zinc-700" />

@@ -17,6 +17,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -79,36 +82,58 @@ public class PublicAuthController {
 
     @GetMapping("/oauth/google")
     @Operation(summary = "Redirect to Google OAuth")
-    public ResponseEntity<Void> oauthGoogleRedirect(HttpServletRequest request) {
-        String callbackUrl = publicAuthProperties.getBackendBaseUrl() + "/auth/public/oauth/google/callback";
-        String authUrl = googleOAuthService.buildAuthorizationUrl(callbackUrl);
-        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(authUrl)).build();
+    public ResponseEntity<?> oauthGoogleRedirect(HttpServletRequest request) {
+        try {
+            String callbackUrl = publicAuthProperties.getBackendBaseUrl() + "/auth/public/oauth/google/callback";
+            String authUrl = googleOAuthService.buildAuthorizationUrl(callbackUrl);
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(authUrl)).build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", "Google OAuth is not configured", "message", e.getMessage()));
+        }
     }
 
     @GetMapping("/oauth/google/callback")
     @Operation(summary = "Google OAuth callback; redirects to frontend with token")
     public ResponseEntity<Void> oauthGoogleCallback(@RequestParam String code) {
-        String callbackUrl = publicAuthProperties.getBackendBaseUrl() + "/auth/public/oauth/google/callback";
-        String token = googleOAuthService.exchangeCodeAndCreateToken(code, callbackUrl);
-        String frontendRedirect = publicAuthProperties.getFrontendUrl() + "/agendar?token=" + token;
-        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(frontendRedirect)).build();
+        try {
+            String callbackUrl = publicAuthProperties.getBackendBaseUrl() + "/auth/public/oauth/google/callback";
+            String token = googleOAuthService.exchangeCodeAndCreateToken(code, callbackUrl);
+            String frontendRedirect = publicAuthProperties.getFrontendUrl() + "/agendar?token=" + token;
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(frontendRedirect)).build();
+        } catch (IllegalStateException e) {
+            String msg = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+            String redirect = publicAuthProperties.getFrontendUrl() + "/agendar?oauth_error=" + msg;
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(redirect)).build();
+        }
     }
 
     @GetMapping("/oauth/apple")
     @Operation(summary = "Redirect to Sign in with Apple")
-    public ResponseEntity<Void> oauthAppleRedirect() {
-        String callbackUrl = publicAuthProperties.getBackendBaseUrl() + "/auth/public/oauth/apple/callback";
-        String authUrl = appleOAuthService.buildAuthorizationUrl(callbackUrl);
-        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(authUrl)).build();
+    public ResponseEntity<?> oauthAppleRedirect() {
+        try {
+            String callbackUrl = publicAuthProperties.getBackendBaseUrl() + "/auth/public/oauth/apple/callback";
+            String authUrl = appleOAuthService.buildAuthorizationUrl(callbackUrl);
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(authUrl)).build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", "Apple OAuth is not configured", "message", e.getMessage()));
+        }
     }
 
     @PostMapping(value = "/oauth/apple/callback", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     @Operation(summary = "Apple OAuth callback (form_post); redirects to frontend with token")
     public ResponseEntity<Void> oauthAppleCallback(@RequestParam String code) {
-        String callbackUrl = publicAuthProperties.getBackendBaseUrl() + "/auth/public/oauth/apple/callback";
-        String token = appleOAuthService.exchangeCodeAndCreateToken(code, callbackUrl);
-        String frontendRedirect = publicAuthProperties.getFrontendUrl() + "/agendar?token=" + token;
-        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(frontendRedirect)).build();
+        try {
+            String callbackUrl = publicAuthProperties.getBackendBaseUrl() + "/auth/public/oauth/apple/callback";
+            String token = appleOAuthService.exchangeCodeAndCreateToken(code, callbackUrl);
+            String frontendRedirect = publicAuthProperties.getFrontendUrl() + "/agendar?token=" + token;
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(frontendRedirect)).build();
+        } catch (IllegalStateException e) {
+            String msg = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+            String redirect = publicAuthProperties.getFrontendUrl() + "/agendar?oauth_error=" + msg;
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(redirect)).build();
+        }
     }
 
     @PostMapping("/phone/request-otp")

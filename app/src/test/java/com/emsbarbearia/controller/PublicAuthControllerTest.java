@@ -150,4 +150,16 @@ class PublicAuthControllerTest {
         mockMvc.perform(get("/api/auth/public/me").contextPath("/api"))
             .andExpect(status().isNotFound());
     }
+
+    @Test
+    void oauthGoogleRedirect_shouldReturn503WhenGoogleNotConfigured() throws Exception {
+        when(publicAuthProperties.getBackendBaseUrl()).thenReturn("http://localhost:8080/api");
+        when(googleOAuthService.buildAuthorizationUrl(any()))
+            .thenThrow(new IllegalStateException("Google OAuth client-id not configured"));
+
+        mockMvc.perform(get("/api/auth/public/oauth/google").contextPath("/api"))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(jsonPath("$.error").value("Google OAuth is not configured"))
+            .andExpect(jsonPath("$.message").value("Google OAuth client-id not configured"));
+    }
 }

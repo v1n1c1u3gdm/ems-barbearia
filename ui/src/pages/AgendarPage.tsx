@@ -25,6 +25,12 @@ function toISO(dataHoraLocal: string): string {
   return new Date(dataHoraLocal).toISOString();
 }
 
+function getInitialErrorFromUrl(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  const oauthError = params.get('oauth_error');
+  return oauthError ? decodeURIComponent(oauthError) : null;
+}
+
 export function AgendarPage() {
   const [hasToken, setHasToken] = useState<boolean>(() => !!getPublicToken());
   const [servicoId, setServicoId] = useState<string>('');
@@ -32,7 +38,7 @@ export function AgendarPage() {
   const [dataHora, setDataHora] = useState<string>('');
   const [tipo, setTipo] = useState<string>('FIRME');
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(getInitialErrorFromUrl);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -41,6 +47,9 @@ export function AgendarPage() {
       setPublicToken(token);
       window.history.replaceState({}, '', window.location.pathname);
       queueMicrotask(() => setHasToken(true));
+    }
+    if (params.get('oauth_error')) {
+      window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
 
@@ -92,6 +101,11 @@ export function AgendarPage() {
     return (
       <div className="mx-auto max-w-xl px-4 py-12">
         <h1 className="mb-8 text-3xl font-bold text-zinc-100">Agendar horário</h1>
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-500/50 bg-red-500/10 px-4 py-3 text-red-400">
+            {error}
+          </div>
+        )}
         <p className="mb-6 text-zinc-400">Identifique-se para solicitar seu agendamento.</p>
         <AgendarAuthGate onAuthenticated={() => setHasToken(true)} />
       </div>
