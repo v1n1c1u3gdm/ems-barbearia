@@ -7,8 +7,8 @@ import java.time.Instant;
 @Schema(description = "Dashboard summary with entity counts")
 public record DashboardSummaryResponse(
 
-    @Schema(description = "Total contatos")
-    long contatos,
+    @Schema(description = "Total relacionamentos")
+    long relacionamentos,
 
     @Schema(description = "Total clientes")
     long clientes,

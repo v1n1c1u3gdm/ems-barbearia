@@ -5,7 +5,7 @@ const ADMIN_NAV_MIDDLE = [
   { to: '/admin/agendamentos', label: 'Agendamentos' },
   { to: '/admin/assinaturas', label: 'Assinaturas' },
   { to: '/admin/clientes', label: 'Clientes' },
-  { to: '/admin/contatos', label: 'Contatos' },
+  { to: '/admin/relacionamentos', label: 'Relacionamentos' },
   { to: '/admin/servicos', label: 'Serviços' },
   { to: '/admin/staff', label: 'Staff' },
 ] as const;

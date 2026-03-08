@@ -11,9 +11,10 @@ O arquivo **AGENTS.md** na raiz do repositório define todas as regras obrigató
 
 1. **Ler o AGENTS.md** (pelo menos a seção "Resumo de verificação antes de finalizar").
 2. **Executar o checklist de verificação:**
-   - Testes: `cd app && mvn verify` (backend), `cd ui && npm run test` (frontend).
+   - Testes com cobertura: `cd app && mvn verify` (backend), `cd ui && npm run test:coverage` (frontend).
    - Lint: `cd app && mvn validate` (backend), `cd ui && npm run lint` (frontend).
    - Containers: `docker compose down && docker compose up --build -d`.
+   - Migrações: se alterou `db/changelog/` ou entidades que impactam schema, conferir que changesets estão no master e que os containers foram recriados (Liquibase roda na subida do app).
    - Se alterou arquivos Markdown: `npm run lint:docs` (na raiz).
 3. Corrigir falhas de teste ou lint antes de finalizar.
 4. Não fazer commit ou push sem solicitação explícita do usuário.

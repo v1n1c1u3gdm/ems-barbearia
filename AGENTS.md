@@ -6,7 +6,7 @@ Este documento define regras obrigatórias para qualquer assistente (Cursor, Cop
 
 ## REGRA OBRIGATÓRIA: Execução de testes com cobertura
 
-**Após toda e qualquer implementação, execute os testes com cobertura antes de finalizar a tarefa. Target: 80% de cobertura em testes unitários (backend e frontend).**
+**Após toda e qualquer implementação, execute os testes sempre com cobertura e confira o relatório antes de finalizar. Target: 80% de cobertura em testes unitários (backend e frontend).**
 
 ### Backend (app/)
 
@@ -14,19 +14,19 @@ Este documento define regras obrigatórias para qualquer assistente (Cursor, Cop
 cd app && mvn verify
 ```
 
-- Use JaCoCo (ou ferramenta equivalente) para cobertura; o relatório deve ser gerado no build.
-- **Cobertura mínima exigida: 80%.**
+- O `mvn verify` executa os testes e o JaCoCo gera o relatório de cobertura no build (ex.: `target/site/jacoco/index.html`).
+- **Sempre rode os testes com cobertura;** confira o relatório e a cobertura mínima de 80%.
 - Se testes falharem, corrija antes de continuar.
 - Não pule esta etapa em nenhuma implementação.
 
 ### Frontend (ui/)
 
 ```bash
-cd ui && npm run test
+cd ui && npm run test:coverage
 ```
 
-- Use Vitest e React Testing Library; execute `npm run test` ou `npm run test:coverage` após alterações no front.
-- Cobertura mínima exigida: 80% (enforced via `npm run test:coverage`).
+- **Sempre use `npm run test:coverage`** (e não apenas `npm run test`) para que o relatório de cobertura seja gerado (Vitest + coverage-v8).
+- Cobertura mínima exigida: 80%; confira o relatório (ex.: `ui/coverage/index.html`) antes de finalizar.
 
 ---
 
@@ -85,6 +85,24 @@ docker compose up --build -d
 2. Use `--build` para forçar rebuild da imagem do app.
 3. Use `-d` para executar em background.
 4. Verifique se os containers sobem corretamente (logs, health) antes de dar a tarefa por concluída.
+
+---
+
+## REGRA OBRIGATÓRIA: Migrações de banco (Liquibase)
+
+**Sempre confira a necessidade de rodar migrações e garanta que alterações de schema estejam aplicadas.**
+
+### Regras
+
+1. **Ao criar ou alterar changesets** em `app/src/main/resources/db/changelog/` (novos XMLs ou SQLs), inclua-os em `db.changelog-master.xml` na ordem correta.
+2. **Ao alterar entidades JPA** (novas tabelas, colunas, FKs), crie o changeset Liquibase correspondente; não confie apenas no Hibernate para gerar o schema em desenvolvimento.
+3. **Migrations rodam na subida da aplicação.** Após mudar o changelog, recrie os containers (`docker compose down && docker compose up --build -d`) para o app subir e o Liquibase executar os changesets pendentes.
+4. **Antes de finalizar:** se tocou em `db/changelog/` ou em entidades que impactam tabelas, confira que o master inclui as mudanças e que os containers foram recriados (ou que a aplicação foi reiniciada) para as migrações rodarem.
+
+### Referência
+
+- Changelog master: `app/src/main/resources/db/changelog/db.changelog-master.xml`.
+- Changesets em: `app/src/main/resources/db/changelog/changes/`.
 
 ---
 
@@ -199,10 +217,11 @@ cd ui && npm run lint
 
 ## Resumo de verificação antes de finalizar
 
-- [ ] Testes executados (backend: `mvn verify`; front: `npm run test` se existir).
-- [ ] Cobertura mínima de 80% respeitada (quando ferramenta de cobertura estiver em uso).
+- [ ] Testes executados sempre com cobertura (backend: `mvn verify`; front: `npm run test:coverage`).
+- [ ] Relatório de cobertura conferido; cobertura mínima de 80% respeitada.
 - [ ] Testes no padrão AAA; assertions claras.
 - [ ] Containers recriados após mudanças: `docker compose down && docker compose up --build -d`.
+- [ ] Migrações: se alterou `db/changelog/` ou entidades que impactam schema, changesets incluídos no master e containers recriados (para o Liquibase rodar na subida do app).
 - [ ] Lint/format do backend e do front executados e sem erros (front: `cd ui && npm run lint` com ESLint + plugins React).
 - [ ] Se alterou Markdown: `npm run lint:docs` executado e sem erros.
 - [ ] Documentação apenas no README (e em `k3d/README.md` quando for caso de k3d); ADRs em `adrs/`; histórico em CHANGELOG.md.

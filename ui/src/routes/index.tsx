@@ -5,7 +5,7 @@ import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
 import { LandingPage } from '@/pages/LandingPage';
 import { AdminLoginPage } from '@/pages/AdminLoginPage';
 import { AdminDashboardPage } from '@/pages/AdminDashboardPage';
-import { AdminContatosPage } from '@/pages/admin/AdminContatosPage';
+import { AdminRelacionamentosPage } from '@/pages/admin/AdminRelacionamentosPage';
 import { AdminServicosPage } from '@/pages/admin/AdminServicosPage';
 import { AdminStaffPage } from '@/pages/admin/AdminStaffPage';
 import { AdminAgendamentosPage } from '@/pages/admin/AdminAgendamentosPage';
@@ -31,7 +31,7 @@ const router = createBrowserRouter([
         element: <ProtectedAdminRoute />,
         children: [
           { index: true, element: <AdminDashboardPage /> },
-          { path: 'contatos', element: <AdminContatosPage /> },
+          { path: 'relacionamentos', element: <AdminRelacionamentosPage /> },
           { path: 'servicos', element: <AdminServicosPage /> },
           { path: 'staff', element: <AdminStaffPage /> },
           { path: 'agendamentos', element: <AdminAgendamentosPage /> },

@@ -11,12 +11,57 @@ export type LoginResponse = {
 };
 
 export type DashboardSummary = {
-  contatos: number;
+  relacionamentos: number;
   clientes: number;
   agendamentos: number;
   servicos: number;
   ultimaAtualizacao: string | null;
 };
+
+export type CanalRelacionamento = 'WHATSAPP' | 'EMAIL' | 'INSTAGRAM';
+export type StatusRelacionamento = 'QUENTE' | 'MORNO' | 'FRIO' | 'GELADO';
+export type TipoInteracao = 'MOTIVADA_PELO_CLIENTE' | 'MOTIVADA_PELO_SISTEMA';
+
+export type RelacionamentoResponse = {
+  id: number;
+  nome: string;
+  email: string;
+  telefone: string | null;
+  canal: CanalRelacionamento;
+  status: StatusRelacionamento;
+  dataUltimaInteracao: string | null;
+  tipoInteracao: TipoInteracao;
+  clienteId: number | null;
+  createdAt: string;
+};
+
+export async function fetchRelacionamentos(canal?: CanalRelacionamento, status?: StatusRelacionamento): Promise<RelacionamentoResponse[]> {
+  const params = new URLSearchParams();
+  if (canal) params.set('canal', canal);
+  if (status) params.set('status', status);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  const res = await fetch(`${API_BASE}/admin/relacionamentos${query}`);
+  if (!res.ok) throw new Error('Erro ao listar relacionamentos');
+  return res.json() as Promise<RelacionamentoResponse[]>;
+}
+
+export async function fetchRelacionamentoById(id: number): Promise<RelacionamentoResponse | null> {
+  const res = await fetch(`${API_BASE}/admin/relacionamentos/${id}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error('Erro ao carregar relacionamento');
+  return res.json() as Promise<RelacionamentoResponse>;
+}
+
+export async function updateRelacionamentoStatus(id: number, status: StatusRelacionamento): Promise<RelacionamentoResponse | null> {
+  const res = await fetch(`${API_BASE}/admin/relacionamentos/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error('Erro ao atualizar status');
+  return res.json() as Promise<RelacionamentoResponse>;
+}
 
 export async function fetchDashboardSummary(): Promise<DashboardSummary> {
   const res = await fetch(`${API_BASE}/admin/dashboard/summary`);
@@ -39,22 +84,6 @@ export async function login(
   }
   return res.json() as Promise<LoginResponse>;
 }
-
-export type ContatoResponse = {
-  id: number;
-  nome: string;
-  email: string;
-  telefone: string | null;
-  mensagem: string | null;
-  createdAt: string;
-};
-
-export type ContatoRequest = {
-  nome: string;
-  email: string;
-  telefone?: string;
-  mensagem?: string;
-};
 
 export type ServicoResponse = {
   id: number;
@@ -89,48 +118,6 @@ export type ClienteRequest = {
   email: string;
   telefone?: string;
 };
-
-export async function fetchContatos(nome?: string): Promise<ContatoResponse[]> {
-  const url = nome ? `${API_BASE}/admin/contatos?nome=${encodeURIComponent(nome)}` : `${API_BASE}/admin/contatos`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Erro ao listar contatos');
-  return res.json() as Promise<ContatoResponse[]>;
-}
-
-export async function fetchContatoById(id: number): Promise<ContatoResponse | null> {
-  const res = await fetch(`${API_BASE}/admin/contatos/${id}`);
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error('Erro ao carregar contato');
-  return res.json() as Promise<ContatoResponse>;
-}
-
-export async function createContato(body: ContatoRequest): Promise<ContatoResponse> {
-  const res = await fetch(`${API_BASE}/admin/contatos`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error('Erro ao criar contato');
-  return res.json() as Promise<ContatoResponse>;
-}
-
-export async function updateContato(id: number, body: ContatoRequest): Promise<ContatoResponse | null> {
-  const res = await fetch(`${API_BASE}/admin/contatos/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error('Erro ao atualizar contato');
-  return res.json() as Promise<ContatoResponse>;
-}
-
-export async function deleteContato(id: number): Promise<boolean> {
-  const res = await fetch(`${API_BASE}/admin/contatos/${id}`, { method: 'DELETE' });
-  if (res.status === 404) return false;
-  if (!res.ok) throw new Error('Erro ao excluir contato');
-  return true;
-}
 
 export async function fetchServicos(titulo?: string): Promise<ServicoResponse[]> {
   const url = titulo ? `${API_BASE}/admin/servicos?titulo=${encodeURIComponent(titulo)}` : `${API_BASE}/admin/servicos`;

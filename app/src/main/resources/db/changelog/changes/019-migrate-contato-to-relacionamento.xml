@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="019-migrate-contato-to-relacionamento" author="ems-barbearia">
+        <sql>
+            INSERT INTO relacionamento (nome, email, telefone, canal, status, data_ultima_interacao, tipo_interacao, created_at)
+            SELECT nome, email, telefone, 'EMAIL', 'QUENTE', created_at, 'MOTIVADA_PELO_CLIENTE', created_at
+            FROM contato
+        </sql>
+    </changeSet>
+</databaseChangeLog>

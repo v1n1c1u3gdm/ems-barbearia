@@ -5,7 +5,7 @@ import { fetchDashboardSummary } from '@/features/admin/api';
 const ADMIN_AREAS = [
   { to: '/admin/agendamentos', label: 'Agendamentos', key: 'agendamentos' as const },
   { to: '/admin/clientes', label: 'Clientes', key: 'clientes' as const },
-  { to: '/admin/contatos', label: 'Contatos', key: 'contatos' as const },
+  { to: '/admin/relacionamentos', label: 'Relacionamentos', key: 'relacionamentos' as const },
   { to: '/admin/servicos', label: 'Serviços', key: 'servicos' as const },
 ] as const;
 

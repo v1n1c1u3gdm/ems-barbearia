@@ -33,7 +33,7 @@ class DashboardControllerTest {
 
         mockMvc.perform(get("/admin/dashboard/summary"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.contatos").value(10))
+            .andExpect(jsonPath("$.relacionamentos").value(10))
             .andExpect(jsonPath("$.clientes").value(5))
             .andExpect(jsonPath("$.agendamentos").value(3))
             .andExpect(jsonPath("$.servicos").value(2))

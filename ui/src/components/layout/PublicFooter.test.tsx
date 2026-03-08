@@ -32,9 +32,16 @@ describe('PublicFooter', () => {
     expect(instagram).toHaveAttribute('href', 'https://www.instagram.com/emsbarbearia/?hl=en');
   });
 
-  it('renders current year in copyright', () => {
+  it('renders copyright from 2024 to current year', () => {
     wrap(<PublicFooter />);
     const year = new Date().getFullYear();
-    expect(screen.getByText(new RegExp(`©\\s*${year}`))).toBeInTheDocument();
+    const footer = screen.getByRole('contentinfo');
+    const copyrightText = footer.textContent ?? '';
+    expect(copyrightText).toContain('©');
+    expect(copyrightText).toContain('2024');
+    expect(copyrightText).toContain('EMS Barbearia');
+    if (year > 2024) {
+      expect(copyrightText).toContain(String(year));
+    }
   });
 });

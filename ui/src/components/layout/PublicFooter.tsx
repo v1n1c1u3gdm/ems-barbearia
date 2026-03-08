@@ -2,7 +2,15 @@ import { useQuery } from '@tanstack/react-query';
 import { CONTACT } from '@/config/contact';
 import { fetchProverbioRandom } from '@/features/admin/api';
 
+const COPYRIGHT_START_YEAR = 2024;
+
 export function PublicFooter() {
+  const currentYear = new Date().getFullYear();
+  const copyrightYear =
+    currentYear > COPYRIGHT_START_YEAR
+      ? `${COPYRIGHT_START_YEAR}–${currentYear}`
+      : String(COPYRIGHT_START_YEAR);
+
   const { data: proverbio } = useQuery({
     queryKey: ['public', 'proverbio-random'],
     queryFn: fetchProverbioRandom,
@@ -56,7 +64,7 @@ export function PublicFooter() {
         </div>
       </div>
       <div className="border-t border-zinc-800 px-4 py-3 text-center text-xs text-zinc-500">
-        © {new Date().getFullYear()} EMS Barbearia
+        © {copyrightYear} EMS Barbearia
       </div>
     </footer>
   );
