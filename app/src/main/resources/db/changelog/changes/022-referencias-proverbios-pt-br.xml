@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="022-referencias-proverbios-pt-br" author="ems-barbearia">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END FROM proverbio WHERE referencia LIKE 'Proverbs%'</sqlCheck>
+        </preConditions>
+        <sql>UPDATE proverbio SET referencia = REPLACE(referencia, 'Proverbs ', 'Provérbios ') WHERE referencia LIKE 'Proverbs%'</sql>
+    </changeSet>
+</databaseChangeLog>

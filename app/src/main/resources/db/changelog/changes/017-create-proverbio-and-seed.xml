@@ -20,6 +20,7 @@
     </changeSet>
 
     <changeSet id="017-seed-proverbios" author="ems-barbearia">
+        <validCheckSum>9:8aded2de2fa6a2ce4f55ad57c197cdea</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <rowCount tableName="proverbio" expectedRows="0"/>
         </preConditions>

@@ -25,4 +25,6 @@
     <include file="db/changelog/changes/019-migrate-contato-to-relacionamento.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/020-create-cliente-credential-table.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/021-create-otp-request-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/022-referencias-proverbios-pt-br.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/023-seed-cantico-salmos-eclesiastes.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

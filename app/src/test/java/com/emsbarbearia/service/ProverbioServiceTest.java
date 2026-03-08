@@ -35,14 +35,14 @@ class ProverbioServiceTest {
     void getRandom_shouldReturnResponseWhenProverbioFound() {
         Proverbio entity = new Proverbio();
         entity.setId(1L);
-        entity.setReferencia("Proverbs 1:1");
+        entity.setReferencia("Provérbios 1:1");
         entity.setTexto("O temor ao SENHOR é o princípio do conhecimento.");
         when(proverbioRepository.findRandom()).thenReturn(Optional.of(entity));
 
         Optional<ProverbioResponse> result = proverbioService.getRandom();
 
         assertThat(result).isPresent();
-        assertThat(result.get().referencia()).isEqualTo("Proverbs 1:1");
+        assertThat(result.get().referencia()).isEqualTo("Provérbios 1:1");
         assertThat(result.get().texto()).isEqualTo("O temor ao SENHOR é o princípio do conhecimento.");
     }
 }

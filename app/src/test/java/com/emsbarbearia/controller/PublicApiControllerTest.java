@@ -112,12 +112,12 @@ class PublicApiControllerTest {
 
     @Test
     void getProverbioRandom_shouldReturn200AndBodyWhenProverbioFound() throws Exception {
-        ProverbioResponse response = new ProverbioResponse("Proverbs 1:7", "O temor ao SENHOR é o princípio do conhecimento.");
+        ProverbioResponse response = new ProverbioResponse("Provérbios 1:7", "O temor ao SENHOR é o princípio do conhecimento.");
         when(proverbioService.getRandom()).thenReturn(Optional.of(response));
 
         mockMvc.perform(get("/proverbios/random"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.referencia").value("Proverbs 1:7"))
+            .andExpect(jsonPath("$.referencia").value("Provérbios 1:7"))
             .andExpect(jsonPath("$.texto").value("O temor ao SENHOR é o princípio do conhecimento."));
     }
 
