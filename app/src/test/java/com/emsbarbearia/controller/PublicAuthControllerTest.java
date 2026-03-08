@@ -10,9 +10,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.emsbarbearia.config.PublicAuthProperties;
 import com.emsbarbearia.config.PublicClienteAuthentication;
+import com.emsbarbearia.dto.ClienteResponse;
 import com.emsbarbearia.entity.Cliente;
 import com.emsbarbearia.repository.ClienteRepository;
+import com.emsbarbearia.service.AppleOAuthService;
+import com.emsbarbearia.service.GoogleOAuthService;
+import com.emsbarbearia.service.OtpService;
 import com.emsbarbearia.service.PublicAuthService;
 import java.time.Instant;
 import java.util.Optional;
@@ -40,6 +45,18 @@ class PublicAuthControllerTest {
     @MockBean
     ClienteRepository clienteRepository;
 
+    @MockBean
+    GoogleOAuthService googleOAuthService;
+
+    @MockBean
+    AppleOAuthService appleOAuthService;
+
+    @MockBean
+    OtpService otpService;
+
+    @MockBean
+    PublicAuthProperties publicAuthProperties;
+
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
@@ -49,7 +66,8 @@ class PublicAuthControllerTest {
     void register_shouldReturn200WithTokenWhenValid() throws Exception {
         when(publicAuthService.register(any())).thenReturn("jwt-token-123");
 
-        mockMvc.perform(post("/auth/public/register")
+        mockMvc.perform(post("/api/auth/public/register")
+                .contextPath("/api")
                 .contentType(APPLICATION_JSON)
                 .content("{\"nome\":\"João\",\"email\":\"joao@example.com\",\"senha\":\"senha123\"}"))
             .andExpect(status().isOk())
@@ -63,7 +81,8 @@ class PublicAuthControllerTest {
         when(publicAuthService.register(any()))
             .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Email já cadastrado"));
 
-        mockMvc.perform(post("/auth/public/register")
+        mockMvc.perform(post("/api/auth/public/register")
+                .contextPath("/api")
                 .contentType(APPLICATION_JSON)
                 .content("{\"nome\":\"João\",\"email\":\"joao@example.com\",\"senha\":\"senha123\"}"))
             .andExpect(status().isConflict());
@@ -73,7 +92,8 @@ class PublicAuthControllerTest {
     void login_shouldReturn200WithTokenWhenValid() throws Exception {
         when(publicAuthService.login(any())).thenReturn("jwt-token-456");
 
-        mockMvc.perform(post("/auth/public/login")
+        mockMvc.perform(post("/api/auth/public/login")
+                .contextPath("/api")
                 .contentType(APPLICATION_JSON)
                 .content("{\"email\":\"joao@example.com\",\"senha\":\"senha123\"}"))
             .andExpect(status().isOk())
@@ -87,7 +107,8 @@ class PublicAuthControllerTest {
         when(publicAuthService.login(any()))
             .thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas"));
 
-        mockMvc.perform(post("/auth/public/login")
+        mockMvc.perform(post("/api/auth/public/login")
+                .contextPath("/api")
                 .contentType(APPLICATION_JSON)
                 .content("{\"email\":\"joao@example.com\",\"senha\":\"wrong\"}"))
             .andExpect(status().isUnauthorized());
@@ -103,8 +124,10 @@ class PublicAuthControllerTest {
         cliente.setTelefone("11999999999");
         cliente.setCreatedAt(Instant.now());
         when(clienteRepository.findById(1L)).thenReturn(Optional.of(cliente));
+        when(publicAuthService.toResponse(any(Cliente.class)))
+            .thenReturn(new ClienteResponse(1L, "João", "joao@example.com", "11999999999", Instant.now()));
 
-        mockMvc.perform(get("/auth/public/me"))
+        mockMvc.perform(get("/api/auth/public/me").contextPath("/api"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.nome").value("João"))
@@ -115,7 +138,7 @@ class PublicAuthControllerTest {
 
     @Test
     void me_shouldReturn401WhenNotAuthenticated() throws Exception {
-        mockMvc.perform(get("/auth/public/me"))
+        mockMvc.perform(get("/api/auth/public/me").contextPath("/api"))
             .andExpect(status().isUnauthorized());
     }
 
@@ -124,7 +147,7 @@ class PublicAuthControllerTest {
         SecurityContextHolder.getContext().setAuthentication(new PublicClienteAuthentication(999L));
         when(clienteRepository.findById(999L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/auth/public/me"))
+        mockMvc.perform(get("/api/auth/public/me").contextPath("/api"))
             .andExpect(status().isNotFound());
     }
 }

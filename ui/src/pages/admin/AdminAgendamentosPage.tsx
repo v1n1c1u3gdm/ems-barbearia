@@ -128,6 +128,33 @@ export function AdminAgendamentosPage() {
     return { aberto: true, startMinutes, endMinutes, rowCount };
   }
 
+  const { globalStartMinutes, globalRowCount } = useMemo(() => {
+    const configs = days.map((d) => {
+      const horario = horarioByDia.get(d.getDay());
+      if (!horario?.aberto || horario.horaInicio == null || horario.horaFim == null) {
+        return { aberto: false as const, startMinutes: 0, endMinutes: 0 };
+      }
+      const startMinutes = parseTimeToMinutes(horario.horaInicio);
+      const endMinutes = parseTimeToMinutes(horario.horaFim);
+      return { aberto: true as const, startMinutes, endMinutes };
+    });
+    const open = configs.filter((c): c is { aberto: true; startMinutes: number; endMinutes: number } => c.aberto);
+    if (open.length === 0) {
+      const start = 8 * 60;
+      const end = 18 * 60;
+      return { globalStartMinutes: start, globalRowCount: Math.ceil((end - start) / slotMinutos) };
+    }
+    const start = Math.min(...open.map((c) => c.startMinutes));
+    const end = Math.max(...open.map((c) => c.endMinutes));
+    return { globalStartMinutes: start, globalRowCount: Math.ceil((end - start) / slotMinutos) };
+  }, [days, slotMinutos, horarioByDia]);
+
+  function formatSlotMinutes(m: number): string {
+    const h = Math.floor(m / 60);
+    const min = m % 60;
+    return `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+  }
+
   const now = new Date();
 
   function positionFor(ag: AgendamentoResponse, dayStart: Date): { top: number; height: number; left: number; width: number } | null {
@@ -142,7 +169,7 @@ export function AdminAgendamentosPage() {
     const endMinutes = end.getHours() * 60 + end.getMinutes();
     if (startMinutes < dayConfig.startMinutes || endMinutes <= dayConfig.startMinutes) return null;
     if (startMinutes >= dayConfig.endMinutes) return null;
-    const top = ((startMinutes - dayConfig.startMinutes) / slotMinutos) * ROW_HEIGHT;
+    const top = ((startMinutes - globalStartMinutes) / slotMinutos) * ROW_HEIGHT;
     const height = Math.max(ROW_HEIGHT / 2, ((endMinutes - startMinutes) / slotMinutos) * ROW_HEIGHT);
     return { top, height, left: 0, width: 100 };
   }
@@ -153,7 +180,7 @@ export function AdminAgendamentosPage() {
     if (!dayConfig.aberto) return null;
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
     if (nowMinutes < dayConfig.startMinutes || nowMinutes >= dayConfig.endMinutes) return null;
-    return ((nowMinutes - dayConfig.startMinutes) / slotMinutos) * ROW_HEIGHT;
+    return ((nowMinutes - globalStartMinutes) / slotMinutos) * ROW_HEIGHT;
   }
 
   return (
@@ -213,10 +240,26 @@ export function AdminAgendamentosPage() {
       {isLoading && <p className="text-zinc-400">Carregando...</p>}
 
       <div className="overflow-x-auto rounded-lg border border-zinc-700 bg-zinc-900">
-        <div className="flex min-w-[800px]" style={{ width: columns * 140 }}>
+        <div className="flex min-w-[800px]" style={{ width: 56 + columns * 140 }}>
+          <div className="shrink-0 border-r border-zinc-700" style={{ width: 56 }}>
+            <div className="sticky top-0 z-10 border-b border-zinc-700 bg-zinc-800 py-2 text-center text-xs font-medium text-zinc-400">
+              Horário
+            </div>
+            <div style={{ height: globalRowCount * ROW_HEIGHT }}>
+              {Array.from({ length: globalRowCount }, (_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center border-b border-zinc-800 pl-1.5 text-xs text-zinc-500"
+                  style={{ height: ROW_HEIGHT }}
+                >
+                  {formatSlotMinutes(globalStartMinutes + i * slotMinutos)}
+                </div>
+              ))}
+            </div>
+          </div>
           {days.map((day) => {
             const dayConfig = getDayConfig(day);
-            const height = dayConfig.aberto ? dayConfig.rowCount * ROW_HEIGHT : ROW_HEIGHT;
+            const height = globalRowCount * ROW_HEIGHT;
             return (
               <div key={day.toISOString()} className="flex-1 border-r border-zinc-700 last:border-r-0" style={{ minWidth: 140 }}>
                 <div className="sticky top-0 z-10 border-b border-zinc-700 bg-zinc-800 py-2 text-center text-sm font-medium text-zinc-200">
@@ -225,7 +268,7 @@ export function AdminAgendamentosPage() {
                 <div className="relative" style={{ height }}>
                   {dayConfig.aberto ? (
                     <>
-                      {Array.from({ length: dayConfig.rowCount }, (_, i) => (
+                      {Array.from({ length: globalRowCount }, (_, i) => (
                         <div
                           key={i}
                           className="border-b border-zinc-800"
@@ -271,7 +314,8 @@ export function AdminAgendamentosPage() {
             );
           })}
         </div>
-        <div className="flex border-t border-zinc-700" style={{ width: columns * 140 }}>
+        <div className="flex border-t border-zinc-700" style={{ width: 56 + columns * 140 }}>
+          <div className="shrink-0 border-r border-zinc-700 py-1 text-center text-xs text-zinc-500" style={{ width: 56 }} />
           {days.map((day) => {
             const dayConfig = getDayConfig(day);
             const label = dayConfig.aberto

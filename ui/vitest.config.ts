@@ -27,6 +27,7 @@ export default defineConfig({
         'src/pages/admin/**',
         'src/pages/HomePage.tsx',
         'src/components/layout/Header.tsx',
+        'src/components/InstagramCarousel.tsx',
         'dist/**',
         '**/*.config.*',
         '**/vitest.config.*',
