@@ -36,6 +36,18 @@ Projeto full-stack: backend Java/Spring Boot em `app/`, frontend React em `ui/`,
 
    Acesse <http://localhost:5173> (em dev a API continua em <http://localhost:8080> se o backend estiver rodando fora do Compose).
 
+## Agendamento público
+
+- **URL:** `/agendar`. O usuário identifica-se (Google, Apple, telefone/OTP ou conta com email/senha) e em seguida preenche serviço, profissional, data/hora e tipo para solicitar o agendamento (status PENDENTE).
+- **Variáveis de ambiente (backend)** para auth pública e OAuth/OTP:
+  - `JWT_PUBLIC_SECRET` – segredo para assinatura do JWT do cliente (obrigatório em produção).
+  - `JWT_PUBLIC_EXPIRATION_MS` – validade do token em ms (ex.: 86400000 = 24h).
+  - `PUBLIC_AUTH_FRONTEND_URL` – URL do frontend para redirect após OAuth (ex.: `http://localhost:5173`).
+  - `PUBLIC_AUTH_BACKEND_BASE_URL` – URL base da API para callbacks OAuth (ex.: `http://localhost:8080/api`).
+  - **Google:** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (OAuth 2.0 no Google Cloud Console).
+  - **Apple:** `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` (Sign in with Apple; chave .p8 em uma linha ou base64).
+  - OTP: por padrão o código é apenas logado (dev). Para SMS/WhatsApp, configure um bean `OtpSender` (ex.: Twilio).
+
 ## Área administrativa
 
 - **URL:** `/admin` (login em `/admin/login`).

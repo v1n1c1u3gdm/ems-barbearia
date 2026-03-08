@@ -3,6 +3,7 @@ package com.emsbarbearia.controller;
 import com.emsbarbearia.dto.AgendamentoRequest;
 import com.emsbarbearia.dto.AgendamentoResponse;
 import com.emsbarbearia.dto.ProverbioResponse;
+import com.emsbarbearia.dto.PublicAgendamentoRequest;
 import com.emsbarbearia.dto.ServicoResponse;
 import com.emsbarbearia.dto.StaffResponse;
 import com.emsbarbearia.service.AgendamentoService;
@@ -14,13 +15,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("")
-@Tag(name = "Public API", description = "Endpoints for public booking (no auth)")
+@Tag(name = "Public API", description = "Endpoints for public booking")
 public class PublicApiController {
 
     private final ServicoService servicoService;
@@ -57,17 +59,22 @@ public class PublicApiController {
     }
 
     @PostMapping("/agendamentos")
-    @Operation(summary = "Create agendamento (status PENDENTE)")
-    public ResponseEntity<AgendamentoResponse> createAgendamento(@Valid @RequestBody AgendamentoRequest request) {
-        AgendamentoRequest publicRequest = new AgendamentoRequest(
-            request.clienteId(),
+    @Operation(summary = "Create agendamento (status PENDENTE); requires Bearer JWT, cliente from token")
+    public ResponseEntity<AgendamentoResponse> createAgendamento(
+            @Valid @RequestBody PublicAgendamentoRequest request,
+            @AuthenticationPrincipal Long clienteId) {
+        if (clienteId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        AgendamentoRequest fullRequest = new AgendamentoRequest(
+            clienteId,
             request.servicoId(),
             request.staffId(),
             request.dataHora(),
             request.tipo(),
             null
         );
-        return agendamentoService.create(publicRequest)
+        return agendamentoService.create(fullRequest)
             .map(body -> ResponseEntity.status(HttpStatus.CREATED).body(body))
             .orElse(ResponseEntity.notFound().build());
     }

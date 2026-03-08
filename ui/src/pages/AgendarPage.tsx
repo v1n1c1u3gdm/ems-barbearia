@@ -1,14 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import {
-  fetchClientes,
-  fetchPublicServicos,
-  fetchPublicStaff,
-  createPublicAgendamento,
-  type AgendamentoRequest,
-  type StaffResponse,
-  type HorarioFuncionamentoStaff,
-} from '@/features/admin/api';
+import { fetchPublicServicos, fetchPublicStaff } from '@/features/admin/api';
+import type { StaffResponse, HorarioFuncionamentoStaff } from '@/features/admin/api';
+import { getPublicToken, setPublicToken } from '@/features/public/auth';
+import { createPublicAgendamento } from '@/features/public/api';
+import { AgendarAuthGate } from '@/features/public/AgendarAuthGate';
 
 function formatDisponibilidade(horarios: HorarioFuncionamentoStaff[] | undefined): string {
   if (!horarios?.length) return 'Sem disponibilidade cadastrada.';
@@ -30,7 +26,7 @@ function toISO(dataHoraLocal: string): string {
 }
 
 export function AgendarPage() {
-  const [clienteId, setClienteId] = useState<string>('');
+  const [hasToken, setHasToken] = useState<boolean>(() => !!getPublicToken());
   const [servicoId, setServicoId] = useState<string>('');
   const [staffId, setStaffId] = useState<string>('');
   const [dataHora, setDataHora] = useState<string>('');
@@ -38,10 +34,15 @@ export function AgendarPage() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: clientes = [] } = useQuery({
-    queryKey: ['public', 'clientes'],
-    queryFn: () => fetchClientes(),
-  });
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      setPublicToken(token);
+      window.history.replaceState({}, '', window.location.pathname);
+      queueMicrotask(() => setHasToken(true));
+    }
+  }, []);
 
   const { data: servicos = [] } = useQuery({
     queryKey: ['public', 'servicos'],
@@ -54,11 +55,11 @@ export function AgendarPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (body: AgendamentoRequest) => createPublicAgendamento(body),
+    mutationFn: (body: { servicoId: number; staffId: number; dataHora: string; tipo: string }) =>
+      createPublicAgendamento(body),
     onSuccess: () => {
       setSuccess(true);
       setError(null);
-      setClienteId('');
       setServicoId('');
       setStaffId('');
       setDataHora('');
@@ -73,21 +74,28 @@ export function AgendarPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const cId = Number(clienteId);
     const sId = Number(servicoId);
     const stId = Number(staffId);
-    if (!cId || !sId || !stId || !dataHora.trim()) {
+    if (!sId || !stId || !dataHora.trim()) {
       setError('Preencha todos os campos.');
       return;
     }
-    const body: AgendamentoRequest = {
-      clienteId: cId,
+    createMutation.mutate({
       servicoId: sId,
       staffId: stId,
       dataHora: toISO(dataHora),
       tipo: tipo || 'FIRME',
-    };
-    createMutation.mutate(body);
+    });
+  }
+
+  if (!hasToken) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-12">
+        <h1 className="mb-8 text-3xl font-bold text-zinc-100">Agendar horário</h1>
+        <p className="mb-6 text-zinc-400">Identifique-se para solicitar seu agendamento.</p>
+        <AgendarAuthGate onAuthenticated={() => setHasToken(true)} />
+      </div>
+    );
   }
 
   return (
@@ -107,26 +115,6 @@ export function AgendarPage() {
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div>
-          <label htmlFor="cliente" className="mb-1 block text-sm font-medium text-zinc-300">
-            Cliente
-          </label>
-          <select
-            id="cliente"
-            value={clienteId}
-            onChange={(e) => setClienteId(e.target.value)}
-            className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-zinc-100 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
-            required
-          >
-            <option value="">Selecione o cliente</option>
-            {clientes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nome} – {c.email}
-              </option>
-            ))}
-          </select>
-        </div>
-
         <div>
           <label htmlFor="servico" className="mb-1 block text-sm font-medium text-zinc-300">
             Serviço
@@ -166,14 +154,15 @@ export function AgendarPage() {
               </option>
             ))}
           </select>
-          {staffId && (() => {
-            const staff = staffList.find((s) => String(s.id) === staffId) as StaffResponse | undefined;
-            return staff ? (
-              <p className="mt-1 text-xs text-zinc-500">
-                Disponível: {formatDisponibilidade(staff.horarios)}
-              </p>
-            ) : null;
-          })()}
+          {staffId &&
+            (() => {
+              const staff = staffList.find((s) => String(s.id) === staffId) as StaffResponse | undefined;
+              return staff ? (
+                <p className="mt-1 text-xs text-zinc-500">
+                  Disponível: {formatDisponibilidade(staff.horarios)}
+                </p>
+              ) : null;
+            })()}
         </div>
 
         <div>

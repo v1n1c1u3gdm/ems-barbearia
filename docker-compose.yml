@@ -25,6 +25,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/${MARIADB_DATABASE:-ems_barbearia}
       SPRING_DATASOURCE_USERNAME: ${MARIADB_USER:-app}
       SPRING_DATASOURCE_PASSWORD: ${MARIADB_PASSWORD:-app_secret}
+      JAVA_TOOL_OPTIONS: "-Dliquibase.secureParsing=false"
     expose:
       - "8080"
     depends_on:

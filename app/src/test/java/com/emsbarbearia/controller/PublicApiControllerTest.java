@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.emsbarbearia.config.PublicClienteAuthentication;
 import com.emsbarbearia.dto.AgendamentoResponse;
 import com.emsbarbearia.dto.ProverbioResponse;
 import com.emsbarbearia.dto.ServicoResponse;
@@ -19,11 +20,13 @@ import com.emsbarbearia.service.StaffService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(PublicApiController.class)
@@ -44,6 +47,11 @@ class PublicApiControllerTest {
 
     @MockBean
     ProverbioService proverbioService;
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     void listServicos_shouldReturn200AndActiveServicos() throws Exception {
@@ -68,7 +76,16 @@ class PublicApiControllerTest {
     }
 
     @Test
+    void createAgendamento_shouldReturn401WhenNotAuthenticated() throws Exception {
+        mockMvc.perform(post("/agendamentos")
+                .contentType(APPLICATION_JSON)
+                .content("{\"servicoId\":1,\"staffId\":1,\"dataHora\":\"2025-06-01T10:00:00Z\",\"tipo\":\"FIRME\"}"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void createAgendamento_shouldReturn201WhenCreated() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new PublicClienteAuthentication(10L));
         AgendamentoResponse response = new AgendamentoResponse(
             1L, 10L, "Cliente", 1L, "Corte", 1L, "João",
             Instant.now(), null, "FIRME", "PENDENTE", Instant.now());
@@ -76,7 +93,7 @@ class PublicApiControllerTest {
 
         mockMvc.perform(post("/agendamentos")
                 .contentType(APPLICATION_JSON)
-                .content("{\"clienteId\":10,\"servicoId\":1,\"staffId\":1,\"dataHora\":\"2025-06-01T10:00:00Z\",\"tipo\":\"FIRME\"}"))
+                .content("{\"servicoId\":1,\"staffId\":1,\"dataHora\":\"2025-06-01T10:00:00Z\",\"tipo\":\"FIRME\"}"))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.status").value("PENDENTE"));
@@ -84,11 +101,12 @@ class PublicApiControllerTest {
 
     @Test
     void createAgendamento_shouldReturn404WhenClienteOrServicoOrStaffNotFound() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new PublicClienteAuthentication(10L));
         when(agendamentoService.create(any())).thenReturn(Optional.empty());
 
         mockMvc.perform(post("/agendamentos")
                 .contentType(APPLICATION_JSON)
-                .content("{\"clienteId\":999,\"servicoId\":1,\"staffId\":1,\"dataHora\":\"2025-06-01T10:00:00Z\",\"tipo\":\"FIRME\"}"))
+                .content("{\"servicoId\":999,\"staffId\":1,\"dataHora\":\"2025-06-01T10:00:00Z\",\"tipo\":\"FIRME\"}"))
             .andExpect(status().isNotFound());
     }
 

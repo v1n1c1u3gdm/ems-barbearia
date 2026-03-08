@@ -34,3 +34,19 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+
+app:
+  jwt:
+    public-secret: ${JWT_PUBLIC_SECRET:default-public-secret-change-in-production}
+    public-expiration-ms: ${JWT_PUBLIC_EXPIRATION_MS:86400000}
+  public-auth:
+    frontend-url: ${PUBLIC_AUTH_FRONTEND_URL:http://localhost:5173}
+    backend-base-url: ${PUBLIC_AUTH_BACKEND_BASE_URL:http://localhost:8080/api}
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:}
+      client-secret: ${GOOGLE_CLIENT_SECRET:}
+    apple:
+      client-id: ${APPLE_CLIENT_ID:}
+      team-id: ${APPLE_TEAM_ID:}
+      key-id: ${APPLE_KEY_ID:}
+      private-key: ${APPLE_PRIVATE_KEY:}
