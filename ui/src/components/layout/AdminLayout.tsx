@@ -24,9 +24,19 @@ export function AdminLayout() {
         <div className="container mx-auto flex h-14 flex-wrap items-center justify-between gap-2 px-4">
           <Link
             to={isLoginPage ? '/' : '/admin'}
-            className="text-lg font-semibold text-white"
+            className="flex items-center gap-2"
+            aria-label={isLoginPage ? 'EMS Barbearia - Início' : 'EMS Barbearia - Admin'}
           >
-            EMS Barbearia{isLoginPage ? '' : ' — Admin'}
+            <img
+              src="/tesoura-pente-ems.svg"
+              alt=""
+              className="h-9 w-auto"
+              width="140"
+              height="36"
+            />
+            {!isLoginPage && (
+              <span className="text-lg font-semibold text-white">— Admin</span>
+            )}
           </Link>
           <nav className="flex items-center gap-1">
             {isLoginPage

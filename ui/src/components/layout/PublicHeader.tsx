@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { CONTACT } from '@/config/contact';
 
 export function PublicHeader() {
   return (
@@ -7,7 +6,7 @@ export function PublicHeader() {
       <nav className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2" aria-label="EMS Barbearia - Início">
           <img
-            src="/ems-barbearia.svg"
+            src="/tesoura-pente-ems.svg"
             alt="EMS Barbearia"
             className="h-9 w-auto"
             width="140"
@@ -32,14 +31,6 @@ export function PublicHeader() {
             className="text-sm text-zinc-300 transition hover:text-white"
           >
             Contato
-          </a>
-          <a
-            href={CONTACT.whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-amber-400"
-          >
-            Agendar
           </a>
         </div>
       </nav>

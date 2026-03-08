@@ -5,7 +5,7 @@ export function PublicFooter() {
     <footer className="border-t border-zinc-800 bg-zinc-950">
       <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row">
         <img
-          src="/ems-barbearia.svg"
+          src="/tesoura-pente-ems.svg"
           alt="EMS Barbearia"
           className="h-8 w-auto opacity-90"
           width="120"

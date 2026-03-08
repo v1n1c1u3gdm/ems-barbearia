@@ -30,7 +30,7 @@ export function LandingPage() {
         <div
           className="absolute inset-0 bg-center bg-no-repeat opacity-[0.2]"
           style={{
-            backgroundImage: 'url(/ems-barbearia.svg)',
+            backgroundImage: 'url(/logo-ems-barbearia.svg)',
             backgroundSize: '70%',
           }}
         />
@@ -41,6 +41,14 @@ export function LandingPage() {
           <p className="mb-10 text-lg text-zinc-300 sm:text-xl">
             Muito além do corte. Cuidado, estilo e presença em um só lugar.
           </p>
+          <a
+            href={CONTACT.whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block rounded-md bg-amber-500 px-8 py-3 text-lg font-medium text-zinc-950 transition hover:bg-amber-400"
+          >
+            Agendar
+          </a>
           {CONTACT.instagramPostUrls.length > 0 && (
             <div className="relative z-10 mt-16 w-full max-w-4xl">
               <p className="mb-4 text-sm font-medium uppercase tracking-wider text-zinc-500">

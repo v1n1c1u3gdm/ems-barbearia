@@ -13,7 +13,7 @@ describe('AdminLayout', () => {
         </Routes>
       </MemoryRouter>
     );
-    expect(screen.getByRole('link', { name: /EMS Barbearia — Admin/i })).toHaveAttribute('href', '/admin');
+    expect(screen.getByRole('link', { name: /EMS Barbearia - Admin/i })).toHaveAttribute('href', '/admin');
     expect(screen.getByRole('link', { name: 'Voltar ao site' })).toHaveAttribute('href', '/');
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
   });

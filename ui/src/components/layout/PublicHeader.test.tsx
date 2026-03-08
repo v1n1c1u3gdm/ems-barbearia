@@ -14,11 +14,10 @@ describe('PublicHeader', () => {
     expect(logo).toHaveAttribute('href', '/');
   });
 
-  it('renders nav links Início, Serviços, Contato, Agendar', () => {
+  it('renders nav links Início, Serviços, Contato', () => {
     wrap(<PublicHeader />);
     expect(screen.getByRole('link', { name: 'Início' })).toHaveAttribute('href', '#inicio');
     expect(screen.getByRole('link', { name: 'Serviços' })).toHaveAttribute('href', '#servicos');
     expect(screen.getByRole('link', { name: 'Contato' })).toHaveAttribute('href', '#contato');
-    expect(screen.getByRole('link', { name: 'Agendar' })).toBeInTheDocument();
   });
 });
