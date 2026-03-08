@@ -1,26 +1,32 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { clearStoredAuth } from '@/config/auth';
 import { fetchDashboardSummary } from '@/features/admin/api';
 
 const ADMIN_AREAS = [
-  { to: '/admin/contatos', label: 'Contatos', key: 'contatos' as const },
-  { to: '/admin/promocoes', label: 'Promoções', key: 'promocoes' as const },
   { to: '/admin/agendamentos', label: 'Agendamentos', key: 'agendamentos' as const },
   { to: '/admin/clientes', label: 'Clientes', key: 'clientes' as const },
+  { to: '/admin/contatos', label: 'Contatos', key: 'contatos' as const },
+  { to: '/admin/promocoes', label: 'Promoções', key: 'promocoes' as const },
 ] as const;
 
+function formatUltimaAtualizacao(iso: string | null): string {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    });
+  } catch {
+    return iso;
+  }
+}
+
 export function AdminDashboardPage() {
-  const navigate = useNavigate();
   const { data, isLoading, isError } = useQuery({
     queryKey: ['admin', 'dashboard', 'summary'],
     queryFn: fetchDashboardSummary,
   });
-
-  function handleLogout() {
-    clearStoredAuth();
-    navigate('/admin/login', { replace: true });
-  }
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -34,6 +40,11 @@ export function AdminDashboardPage() {
       {isError && (
         <p className="mb-6 text-red-400" role="alert">
           Erro ao carregar resumo. Tente novamente.
+        </p>
+      )}
+      {data != null && data.ultimaAtualizacao != null && (
+        <p className="mb-4 text-sm text-zinc-500">
+          Última atualização (qualquer área): {formatUltimaAtualizacao(data.ultimaAtualizacao)}
         </p>
       )}
       <ul className="mb-8 grid gap-2 sm:grid-cols-2">
@@ -53,15 +64,6 @@ export function AdminDashboardPage() {
           </li>
         ))}
       </ul>
-      <div className="flex gap-4">
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="rounded-md bg-zinc-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-600"
-        >
-          Sair
-        </button>
-      </div>
     </div>
   );
 }

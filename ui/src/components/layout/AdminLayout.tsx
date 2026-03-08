@@ -1,11 +1,11 @@
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { clearStoredAuth } from '@/config/auth';
 
-const ADMIN_NAV = [
-  { to: '/admin', label: 'Painel' },
-  { to: '/admin/contatos', label: 'Contatos' },
-  { to: '/admin/promocoes', label: 'Promoções' },
+const ADMIN_NAV_MIDDLE = [
   { to: '/admin/agendamentos', label: 'Agendamentos' },
   { to: '/admin/clientes', label: 'Clientes' },
+  { to: '/admin/contatos', label: 'Contatos' },
+  { to: '/admin/promocoes', label: 'Promoções' },
 ] as const;
 
 const PUBLIC_NAV = [
@@ -16,7 +16,13 @@ const PUBLIC_NAV = [
 
 export function AdminLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const isLoginPage = location.pathname === '/admin/login';
+
+  function handleLogout() {
+    clearStoredAuth();
+    navigate('/admin/login', { replace: true });
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -49,30 +55,45 @@ export function AdminLayout() {
                     {label}
                   </Link>
                 ))
-              : ADMIN_NAV.map(({ to, label }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    end={to === '/admin'}
-                    className={({ isActive }) =>
-                      `rounded-md px-3 py-2 text-sm transition ${
-                        isActive
-                          ? 'bg-zinc-800 text-white'
-                          : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-white'
-                      }`
-                    }
-                  >
-                    {label}
-                  </NavLink>
-                ))}
-            {!isLoginPage && (
-              <a
-                href="/"
-                className="ml-2 rounded-md px-3 py-2 text-sm text-zinc-400 transition hover:bg-zinc-800/50 hover:text-white"
-              >
-                Voltar ao site
-              </a>
-            )}
+              : (
+                  <>
+                    <NavLink
+                      to="/admin"
+                      end
+                      className={({ isActive }) =>
+                        `rounded-md px-3 py-2 text-sm transition ${
+                          isActive
+                            ? 'bg-zinc-800 text-white'
+                            : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-white'
+                        }`
+                      }
+                    >
+                      Painel
+                    </NavLink>
+                    {ADMIN_NAV_MIDDLE.map(({ to, label }) => (
+                      <NavLink
+                        key={to}
+                        to={to}
+                        className={({ isActive }) =>
+                          `rounded-md px-3 py-2 text-sm transition ${
+                            isActive
+                              ? 'bg-zinc-800 text-white'
+                              : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-white'
+                          }`
+                        }
+                      >
+                        {label}
+                      </NavLink>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="rounded-md px-3 py-2 text-sm text-zinc-400 transition hover:bg-zinc-800/50 hover:text-white"
+                    >
+                      Sair
+                    </button>
+                  </>
+                )}
           </nav>
         </div>
       </header>

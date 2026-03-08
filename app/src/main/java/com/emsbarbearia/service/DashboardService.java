@@ -7,6 +7,10 @@ import com.emsbarbearia.repository.ContatoRepository;
 import com.emsbarbearia.repository.PromocaoRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.util.Optional;
+import java.util.stream.Stream;
+
 @Service
 public class DashboardService {
 
@@ -28,11 +32,21 @@ public class DashboardService {
     }
 
     public DashboardSummaryResponse getSummary() {
+        Instant ultima = Stream.of(
+            contatoRepository.findLatestCreatedAt(),
+            clienteRepository.findLatestCreatedAt(),
+            agendamentoRepository.findLatestCreatedAt(),
+            promocaoRepository.findLatestCreatedAt()
+        )
+            .flatMap(Optional::stream)
+            .max(Instant::compareTo)
+            .orElse(null);
         return new DashboardSummaryResponse(
             contatoRepository.count(),
             clienteRepository.count(),
             agendamentoRepository.count(),
-            promocaoRepository.count()
+            promocaoRepository.count(),
+            ultima
         );
     }
 }

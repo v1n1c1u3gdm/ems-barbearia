@@ -11,6 +11,7 @@ vi.mock('@/features/admin/api', () => ({
       clientes: 5,
       agendamentos: 3,
       promocoes: 2,
+      ultimaAtualizacao: '2025-03-07T12:00:00Z',
     })
   ),
 }));
@@ -31,10 +32,9 @@ function wrap(ui: React.ReactNode) {
 }
 
 describe('AdminDashboardPage', () => {
-  it('renders Painel heading and Sair button', () => {
+  it('renders Painel heading', () => {
     wrap(<AdminDashboardPage />);
     expect(screen.getByRole('heading', { name: 'Painel' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
   });
 
   it('renders links to admin areas with counts when summary loads', async () => {
@@ -44,5 +44,11 @@ describe('AdminDashboardPage', () => {
     expect(screen.getByRole('link', { name: /Promoções.*2/ })).toHaveAttribute('href', '/admin/promocoes');
     expect(screen.getByRole('link', { name: /Agendamentos.*3/ })).toHaveAttribute('href', '/admin/agendamentos');
     expect(screen.getByRole('link', { name: /Clientes.*5/ })).toHaveAttribute('href', '/admin/clientes');
+  });
+
+  it('shows ultima atualização when summary has ultimaAtualizacao', async () => {
+    wrap(<AdminDashboardPage />);
+    await screen.findByText(/Última atualização/);
+    expect(screen.getByText(/Última atualização \(qualquer área\)/)).toBeInTheDocument();
   });
 });

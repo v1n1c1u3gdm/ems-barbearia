@@ -3,9 +3,11 @@ target/
 build/
 dist/
 out/
+coverage/
 
 # Dependencies
 node_modules/
+.m2/
 
 # Environment and secrets
 .env

@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.emsbarbearia.dto.DashboardSummaryResponse;
 import com.emsbarbearia.service.DashboardService;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -26,7 +27,8 @@ class DashboardControllerTest {
 
     @Test
     void getSummary_shouldReturn200WithCounts() throws Exception {
-        DashboardSummaryResponse response = new DashboardSummaryResponse(10L, 5L, 3L, 2L);
+        Instant now = Instant.parse("2025-03-07T12:00:00Z");
+        DashboardSummaryResponse response = new DashboardSummaryResponse(10L, 5L, 3L, 2L, now);
         when(service.getSummary()).thenReturn(response);
 
         mockMvc.perform(get("/admin/dashboard/summary"))
@@ -34,6 +36,7 @@ class DashboardControllerTest {
             .andExpect(jsonPath("$.contatos").value(10))
             .andExpect(jsonPath("$.clientes").value(5))
             .andExpect(jsonPath("$.agendamentos").value(3))
-            .andExpect(jsonPath("$.promocoes").value(2));
+            .andExpect(jsonPath("$.promocoes").value(2))
+            .andExpect(jsonPath("$.ultimaAtualizacao").value("2025-03-07T12:00:00Z"));
     }
 }
