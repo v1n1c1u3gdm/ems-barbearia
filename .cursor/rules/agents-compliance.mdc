@@ -1,0 +1,23 @@
+---
+description: Seguir AGENTS.md e executar o checklist de verificação antes de finalizar
+alwaysApply: true
+---
+
+# Regras e checklist do projeto
+
+O arquivo **AGENTS.md** na raiz do repositório define todas as regras obrigatórias para assistentes (Cursor, Copilot, Claude Code, etc.). Você **deve** segui-lo.
+
+## O que fazer antes de dar qualquer tarefa por concluída
+
+1. **Ler o AGENTS.md** (pelo menos a seção "Resumo de verificação antes de finalizar").
+2. **Executar o checklist de verificação:**
+   - Testes: `cd app && mvn verify` (backend), `cd ui && npm run test` (frontend).
+   - Lint: `cd app && mvn validate` (backend), `cd ui && npm run lint` (frontend).
+   - Containers: `docker compose down && docker compose up --build -d`.
+   - Se alterou arquivos Markdown: `npm run lint:docs` (na raiz).
+3. Corrigir falhas de teste ou lint antes de finalizar.
+4. Não fazer commit ou push sem solicitação explícita do usuário.
+
+## Referência
+
+- Regras completas, padrão AAA, cobertura, documentação: **AGENTS.md** na raiz.
