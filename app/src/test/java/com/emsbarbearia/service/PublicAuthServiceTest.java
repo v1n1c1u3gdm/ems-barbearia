@@ -6,12 +6,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.emsbarbearia.dto.ClienteResponse;
 import com.emsbarbearia.dto.PublicLoginRequest;
 import com.emsbarbearia.dto.PublicRegisterRequest;
 import com.emsbarbearia.entity.Cliente;
 import com.emsbarbearia.entity.ClienteCredential;
 import com.emsbarbearia.repository.ClienteCredentialRepository;
 import com.emsbarbearia.repository.ClienteRepository;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -119,5 +121,23 @@ class PublicAuthServiceTest {
         assertThatThrownBy(() -> publicAuthService.login(request))
             .isInstanceOf(ResponseStatusException.class)
             .hasMessageContaining("Credenciais inválidas");
+    }
+
+    @Test
+    void toResponse_shouldMapClienteToClienteResponse() {
+        Cliente cliente = new Cliente();
+        cliente.setId(1L);
+        cliente.setNome("João");
+        cliente.setEmail("joao@example.com");
+        cliente.setTelefone("11999999999");
+        cliente.setCreatedAt(Instant.now());
+
+        ClienteResponse response = publicAuthService.toResponse(cliente);
+
+        assertThat(response.id()).isEqualTo(1L);
+        assertThat(response.nome()).isEqualTo("João");
+        assertThat(response.email()).isEqualTo("joao@example.com");
+        assertThat(response.telefone()).isEqualTo("11999999999");
+        assertThat(response.createdAt()).isEqualTo(cliente.getCreatedAt());
     }
 }

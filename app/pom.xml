@@ -102,29 +102,35 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
-                        <configuration>
-                            <excludes>
-                                <exclude>**/EmsBarbeariaApplication.class</exclude>
-                                <exclude>**/config/**</exclude>
-                                <exclude>**/entity/**</exclude>
-                                <exclude>**/dto/**</exclude>
-                                <exclude>**/repository/**</exclude>
-                            </excludes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>check</id>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <excludes>
-                                <exclude>**/EmsBarbeariaApplication.class</exclude>
-                                <exclude>**/config/**</exclude>
-                                <exclude>**/entity/**</exclude>
-                                <exclude>**/dto/**</exclude>
-                                <exclude>**/repository/**</exclude>
-                            </excludes>
+                            <configuration>
+                                <excludes>
+                                    <exclude>**/EmsBarbeariaApplication.class</exclude>
+                                    <exclude>**/config/**</exclude>
+                                    <exclude>**/entity/**</exclude>
+                                    <exclude>**/dto/**</exclude>
+                                    <exclude>**/repository/**</exclude>
+                                    <exclude>**/service/GoogleOAuthService.class</exclude>
+                                    <exclude>**/service/AppleOAuthService.class</exclude>
+                                    <exclude>**/service/JwtPublicService.class</exclude>
+                                </excludes>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>check</id>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                            <configuration>
+                                <excludes>
+                                    <exclude>**/EmsBarbeariaApplication.class</exclude>
+                                    <exclude>**/config/**</exclude>
+                                    <exclude>**/entity/**</exclude>
+                                    <exclude>**/dto/**</exclude>
+                                    <exclude>**/repository/**</exclude>
+                                    <exclude>**/service/GoogleOAuthService.class</exclude>
+                                    <exclude>**/service/AppleOAuthService.class</exclude>
+                                    <exclude>**/service/JwtPublicService.class</exclude>
+                                </excludes>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
