@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 type ModalProps = {
   open: boolean;
@@ -19,9 +20,10 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
 
   if (!open) return null;
 
-  return (
+  const content = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      className="flex items-center justify-center bg-black/60 p-4"
+      style={{ position: 'fixed', inset: 0, zIndex: 99999 }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -48,4 +50,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
       </div>
     </div>
   );
+
+  const container = document.getElementById('modal-root') ?? document.body;
+  return createPortal(content, container);
 }

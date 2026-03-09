@@ -5,7 +5,7 @@ import { Modal } from '@/components/ui/Modal';
 import type { HorarioFuncionamentoStaff, StaffResponse } from '@/features/admin/api';
 import { fetchPublicServicos, fetchPublicStaff } from '@/features/admin/api';
 import { AgendarAuthGate } from '@/features/public/AgendarAuthGate';
-import type { AgendamentoResponse } from '@/features/public/api';
+import type { AgendamentoResponse, PublicSlotResponse } from '@/features/public/api';
 import {
   cancelPublicAgendamento,
   createPublicAgendamento,
@@ -70,25 +70,6 @@ function formatDisponibilidade(horarios: HorarioFuncionamentoStaff[] | undefined
   return parts.join('; ');
 }
 
-function toISO(dataHoraLocal: string): string {
-  if (!dataHoraLocal) return '';
-  return new Date(dataHoraLocal).toISOString();
-}
-
-function dayRangeFromDateInput(dataHoraLocal: string): { de: string; ate: string } | null {
-  if (!dataHoraLocal || dataHoraLocal.length < 10) return null;
-  const d = new Date(dataHoraLocal);
-  const start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  return { de: start.toISOString(), ate: end.toISOString() };
-}
-
-function formatSlotTime(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-}
-
 function statusLabel(status: string): string {
   if (status === 'PENDENTE') return 'Pendente';
   if (status === 'APROVADO') return 'Confirmado';
@@ -107,12 +88,12 @@ export function AgendarPage() {
   const { hasToken, setToken } = usePublicAuth();
   const [servicoId, setServicoId] = useState<string>('');
   const [staffId, setStaffId] = useState<string>('');
-  const [dataHora, setDataHora] = useState<string>('');
   const [tipo, setTipo] = useState<string>('FIRME');
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(getInitialErrorFromUrl);
   const [viewMode, setViewMode] = useState<'day' | 'week'>('week');
   const [selectedDate, setSelectedDate] = useState(() => getStartOfDay(new Date()));
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [modalAgendamento, setModalAgendamento] = useState<AgendamentoResponse | null>(null);
 
   useEffect(() => {
@@ -143,18 +124,6 @@ export function AgendarPage() {
     enabled: hasToken,
   });
 
-  const dayRange = useMemo(() => dayRangeFromDateInput(dataHora), [dataHora]);
-  const staffIdNum = staffId ? Number(staffId) : undefined;
-  const { data: daySlots = [], isLoading: daySlotsLoading } = useQuery({
-    queryKey: ['public', 'slots', dayRange?.de, dayRange?.ate, staffIdNum],
-    queryFn: () =>
-      fetchPublicSlots({
-        de: dayRange!.de,
-        ate: dayRange!.ate,
-        staffId: staffIdNum,
-      }),
-    enabled: !!dayRange?.de && !!dayRange?.ate,
-  });
 
   const cancelMutation = useMutation({
     mutationFn: cancelPublicAgendamento,
@@ -172,7 +141,7 @@ export function AgendarPage() {
       setError(null);
       setServicoId('');
       setStaffId('');
-      setDataHora('');
+      setSelectedSlot(null);
       setTipo('FIRME');
       queryClient.invalidateQueries({ queryKey: ['public', 'slots'] });
       queryClient.invalidateQueries({ queryKey: ['public', 'meus-agendamentos'] });
@@ -186,16 +155,17 @@ export function AgendarPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!selectedSlot) return;
     const sId = Number(servicoId);
     const stId = Number(staffId);
-    if (!sId || !stId || !dataHora.trim()) {
-      setError('Preencha todos os campos.');
+    if (!sId || !stId) {
+      setError('Preencha serviço e profissional.');
       return;
     }
     createMutation.mutate({
       servicoId: sId,
       staffId: stId,
-      dataHora: toISO(dataHora),
+      dataHora: selectedSlot,
       tipo: tipo || 'FIRME',
     });
   }
@@ -212,6 +182,12 @@ export function AgendarPage() {
     endNext.setDate(endNext.getDate() + 1);
     return { de: start.toISOString(), ate: endNext.toISOString() };
   }, [viewMode, selectedDate]);
+
+  const { data: calendarSlots = [] } = useQuery({
+    queryKey: ['public', 'slots', calendarDe, calendarAte],
+    queryFn: () => fetchPublicSlots({ de: calendarDe, ate: calendarAte }),
+    enabled: hasToken && !!calendarDe && !!calendarAte,
+  });
 
   const agendamentosInRange = useMemo(() => {
     return myAgendamentos.filter((ag) => {
@@ -284,6 +260,47 @@ export function AgendarPage() {
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
     if (nowMinutes < defaultStartMinutes || nowMinutes >= defaultEndMinutes) return null;
     return ((nowMinutes - defaultStartMinutes) / slotMinutos) * ROW_HEIGHT;
+  }
+
+  function slotISOFor(day: Date, rowIndex: number): string {
+    const d = new Date(day);
+    d.setHours(0, 0, 0, 0);
+    const totalMin = defaultStartMinutes + rowIndex * slotMinutos;
+    d.setHours(Math.floor(totalMin / 60), totalMin % 60, 0, 0);
+    return d.toISOString();
+  }
+
+  function slotsOverlap(
+    slotStart: number,
+    slotEnd: number,
+    other: { dataHora: string; dataHoraFim: string | null }
+  ): boolean {
+    const otherStart = new Date(other.dataHora).getTime();
+    const otherEnd = other.dataHoraFim
+      ? new Date(other.dataHoraFim).getTime()
+      : otherStart + slotMinutos * 60 * 1000;
+    return slotStart < otherEnd && slotEnd > otherStart;
+  }
+
+  function getMyAgendamentoAt(day: Date, rowIndex: number): AgendamentoResponse | null {
+    const slotStart = new Date(slotISOFor(day, rowIndex)).getTime();
+    const slotEnd = slotStart + slotMinutos * 60 * 1000;
+    return (
+      agendamentosInRange.find((ag) =>
+        slotsOverlap(slotStart, slotEnd, {
+          dataHora: ag.dataHora,
+          dataHoraFim: ag.dataHoraFim ?? null,
+        })
+      ) ?? null
+    );
+  }
+
+  function isSlotOccupied(day: Date, rowIndex: number): boolean {
+    const slotStart = new Date(slotISOFor(day, rowIndex)).getTime();
+    const slotEnd = slotStart + slotMinutos * 60 * 1000;
+    return calendarSlots.some((s: PublicSlotResponse) =>
+      slotsOverlap(slotStart, slotEnd, { dataHora: s.dataHora, dataHoraFim: s.dataHoraFim ?? null })
+    );
   }
 
   if (!hasToken) {
@@ -408,13 +425,46 @@ export function AgendarPage() {
                     {formatDateBR(day)}
                   </div>
                   <div className="relative" style={{ height }}>
-                    {Array.from({ length: globalRowCount }, (_, i) => (
-                      <div
-                        key={i}
-                        className="border-b border-zinc-800"
-                        style={{ height: ROW_HEIGHT }}
-                      />
-                    ))}
+                    {Array.from({ length: globalRowCount }, (_, i) => {
+                      const myAg = getMyAgendamentoAt(day, i);
+                      const occupied = isSlotOccupied(day, i);
+                      const slotIso = slotISOFor(day, i);
+                      const timeLabel = formatSlotMinutes(defaultStartMinutes + i * slotMinutos);
+                      if (myAg) {
+                        return (
+                          <div
+                            key={i}
+                            className="border-b border-zinc-800"
+                            style={{ height: ROW_HEIGHT }}
+                          />
+                        );
+                      }
+                      if (occupied) {
+                        return (
+                          <div
+                            key={i}
+                            className="border-b border-zinc-800 bg-zinc-800/50"
+                            style={{ height: ROW_HEIGHT }}
+                            title="Horário ocupado"
+                          />
+                        );
+                      }
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setSelectedSlot(slotIso)}
+                          className="border-b border-zinc-800 w-full text-left hover:bg-amber-500/20 focus:bg-amber-500/20 focus:outline-none"
+                          style={{ height: ROW_HEIGHT }}
+                          title={`Horário ${timeLabel}`}
+                          data-testid="slot-button"
+                        >
+                          <span className="sr-only">
+                            {formatDateBR(day)} {timeLabel}
+                          </span>
+                        </button>
+                      );
+                    })}
                     {currentTimePosition(day) != null && (
                       <div
                         className="absolute left-0 right-0 z-20 h-0.5 bg-red-500"
@@ -582,157 +632,133 @@ export function AgendarPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div>
-          <label htmlFor="servico" className="mb-1 block text-sm font-medium text-zinc-300">
-            Serviço
-          </label>
-          <select
-            id="servico"
-            value={servicoId}
-            onChange={(e) => setServicoId(e.target.value)}
-            className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-zinc-100 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
-            required
-          >
-            <option value="">Selecione o serviço</option>
-            {servicos.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.titulo}
-                {s.duracaoMinutos != null ? ` (${s.duracaoMinutos} min)` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
+      <p className="text-zinc-400">
+        Clique em um horário disponível no calendário (célula clara) para agendar.
+      </p>
 
-        <div>
-          <label htmlFor="staff" className="mb-1 block text-sm font-medium text-zinc-300">
-            Profissional
-          </label>
-          <select
-            id="staff"
-            value={staffId}
-            onChange={(e) => setStaffId(e.target.value)}
-            className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-zinc-100 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
-            required
-          >
-            <option value="">Selecione o profissional</option>
-            {staffList.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.nome}
-              </option>
-            ))}
-          </select>
-          {staffId &&
-            (() => {
-              const staff = staffList.find((s) => String(s.id) === staffId) as StaffResponse | undefined;
-              return staff ? (
-                <p className="mt-1 text-xs text-zinc-500">
-                  Disponível: {formatDisponibilidade(staff.horarios)}
-                </p>
-              ) : null;
-            })()}
-        </div>
-
-        <div>
-          <label htmlFor="dataHora" className="mb-1 block text-sm font-medium text-zinc-300">
-            Data e hora
-          </label>
-          <input
-            id="dataHora"
-            type="datetime-local"
-            value={dataHora}
-            onChange={(e) => setDataHora(e.target.value)}
-            className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-zinc-100 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
-            required
-          />
-        </div>
-
-        {dayRange && (
-          <div className="rounded-lg border border-zinc-700 bg-zinc-900/80 p-4">
-            <h3 className="mb-3 text-sm font-semibold text-zinc-200">
-              Agenda do dia
-              {staffId ? ' (este profissional)' : ''}
-            </h3>
-            {daySlotsLoading ? (
-              <p className="text-sm text-zinc-500">Carregando…</p>
-            ) : daySlots.length === 0 ? (
-              <p className="text-sm text-zinc-500">Nenhum agendamento neste dia.</p>
-            ) : (
-              <ul className="space-y-2">
-                {daySlots.map((slot, i) => (
-                  <li
-                    key={i}
-                    className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded border border-zinc-700 bg-zinc-800/80 px-3 py-2 text-sm"
-                  >
-                    <span className="font-medium text-zinc-200 tabular-nums">
-                      {formatSlotTime(slot.dataHora)}
-                      {slot.dataHoraFim ? ` – ${formatSlotTime(slot.dataHoraFim)}` : ''}
-                    </span>
-                    {slot.staffNome && (
-                      <span className="text-zinc-400">{slot.staffNome}</span>
-                    )}
-                    <span
-                      className={
-                        slot.tipo === 'FIRME'
-                          ? 'rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-400'
-                          : 'rounded bg-zinc-600/50 px-1.5 py-0.5 text-xs text-zinc-400'
-                      }
-                    >
-                      {slot.tipo === 'FIRME' ? 'Firme' : 'Encaixe'}
-                    </span>
-                    {slot.status === 'PENDENTE' && (
-                      <span className="text-amber-500/90">Pendente</span>
-                    )}
-                    {slot.status === 'APROVADO' && (
-                      <span className="text-emerald-500/90">Aprovado</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+      <Modal
+        open={selectedSlot != null}
+        onClose={() => setSelectedSlot(null)}
+        title="Confirmar agendamento"
+      >
+        {selectedSlot && (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {error && (
+              <div className="rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+                {error}
+              </div>
             )}
-            <p className="mt-3 text-xs text-zinc-500">
-              <strong>Firme:</strong> horário fixo — escolha um horário livre. <strong>Encaixe:</strong> pode ser
-              encaixado entre outros agendamentos.
+            <p className="text-sm font-medium text-zinc-300">
+              Data e horário:{' '}
+              <span className="font-semibold text-zinc-100">
+                {new Date(selectedSlot).toLocaleString('pt-BR', {
+                  weekday: 'short',
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </span>
             </p>
-          </div>
+
+            <div>
+              <label htmlFor="modal-servico" className="mb-1 block text-sm font-medium text-zinc-300">
+                Serviço
+              </label>
+              <select
+                id="modal-servico"
+                value={servicoId}
+                onChange={(e) => setServicoId(e.target.value)}
+                className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-zinc-100 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                required
+              >
+                <option value="">Selecione o serviço</option>
+                {servicos.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.titulo}
+                    {s.duracaoMinutos != null ? ` (${s.duracaoMinutos} min)` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="modal-staff" className="mb-1 block text-sm font-medium text-zinc-300">
+                Profissional
+              </label>
+              <select
+                id="modal-staff"
+                value={staffId}
+                onChange={(e) => setStaffId(e.target.value)}
+                className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-zinc-100 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                required
+              >
+                <option value="">Selecione o profissional</option>
+                {staffList.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.nome}
+                  </option>
+                ))}
+              </select>
+              {staffId &&
+                (() => {
+                  const staff = staffList.find((s) => String(s.id) === staffId) as StaffResponse | undefined;
+                  return staff ? (
+                    <p className="mt-1 text-xs text-zinc-500">
+                      Disponível: {formatDisponibilidade(staff.horarios)}
+                    </p>
+                  ) : null;
+                })()}
+            </div>
+
+            <div>
+              <span className="mb-2 block text-sm font-medium text-zinc-300">Tipo</span>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 text-zinc-300">
+                  <input
+                    type="radio"
+                    name="tipo"
+                    value="FIRME"
+                    checked={tipo === 'FIRME'}
+                    onChange={() => setTipo('FIRME')}
+                    className="text-amber-500 focus:ring-amber-500"
+                  />
+                  Firme (horário fixo)
+                </label>
+                <label className="flex items-center gap-2 text-zinc-300">
+                  <input
+                    type="radio"
+                    name="tipo"
+                    value="ENCAIXE"
+                    checked={tipo === 'ENCAIXE'}
+                    onChange={() => setTipo('ENCAIXE')}
+                    className="text-amber-500 focus:ring-amber-500"
+                  />
+                  Encaixe
+                </label>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setSelectedSlot(null)}
+                className="rounded-md border border-zinc-600 bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-700"
+              >
+                Escolher outro horário
+              </button>
+              <button
+                type="submit"
+                disabled={createMutation.isPending}
+                className="rounded-md bg-amber-500 px-6 py-2 font-medium text-zinc-950 transition hover:bg-amber-400 disabled:opacity-50"
+              >
+                {createMutation.isPending ? 'Enviando...' : 'Confirmar agendamento'}
+              </button>
+            </div>
+          </form>
         )}
-
-        <div>
-          <span className="mb-2 block text-sm font-medium text-zinc-300">Tipo</span>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2 text-zinc-300">
-              <input
-                type="radio"
-                name="tipo"
-                value="FIRME"
-                checked={tipo === 'FIRME'}
-                onChange={() => setTipo('FIRME')}
-                className="text-amber-500 focus:ring-amber-500"
-              />
-              Firme (horário fixo)
-            </label>
-            <label className="flex items-center gap-2 text-zinc-300">
-              <input
-                type="radio"
-                name="tipo"
-                value="ENCAIXE"
-                checked={tipo === 'ENCAIXE'}
-                onChange={() => setTipo('ENCAIXE')}
-                className="text-amber-500 focus:ring-amber-500"
-              />
-              Encaixe
-            </label>
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={createMutation.isPending}
-          className="mt-4 rounded-md bg-amber-500 px-6 py-3 font-medium text-zinc-950 transition hover:bg-amber-400 disabled:opacity-50"
-        >
-          {createMutation.isPending ? 'Enviando...' : 'Solicitar agendamento'}
-        </button>
-      </form>
+      </Modal>
     </div>
   );
 }

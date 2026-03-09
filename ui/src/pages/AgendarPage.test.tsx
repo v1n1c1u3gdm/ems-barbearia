@@ -85,70 +85,54 @@ describe('AgendarPage', () => {
     expect(screen.getByText(/Identifique-se para solicitar/)).toBeInTheDocument();
   });
 
-  it('renders calendar and booking form when authenticated', async () => {
+  it('renders calendar and slot-first message when authenticated', async () => {
     wrap(<AgendarPage />);
     await waitFor(() => {
-      expect(screen.getByLabelText(/Serviço/)).toBeInTheDocument();
+      expect(screen.getByText('Horário')).toBeInTheDocument();
     });
     expect(screen.getByRole('button', { name: 'Dia' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Semana' })).toBeInTheDocument();
-    expect(screen.getByText('Horário')).toBeInTheDocument();
     expect(screen.getByLabelText(/Ir para/)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Profissional/)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Data e hora/)).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /Firme/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Solicitar agendamento/ })).toBeInTheDocument();
+    expect(
+      screen.getByText(/Clique em um horário disponível no calendário.*para agendar/)
+    ).toBeInTheDocument();
   });
 
-  it('shows success message after submit', async () => {
+  it('shows form after clicking slot and success message after submit', async () => {
     const user = userEvent.setup();
     wrap(<AgendarPage />);
-    await screen.findByLabelText(/Serviço/);
     await waitFor(() => {
-      expect(screen.getByRole('option', { name: /Corte/ })).toBeInTheDocument();
+      expect(screen.getByText('Horário')).toBeInTheDocument();
+    });
+    const slotButtons = screen.getAllByTestId('slot-button');
+    expect(slotButtons.length).toBeGreaterThan(0);
+    await user.click(slotButtons[0]);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Serviço/)).toBeInTheDocument();
     });
     await user.selectOptions(screen.getByLabelText(/Serviço/), screen.getByRole('option', { name: /Corte/ }));
     await user.selectOptions(screen.getByLabelText(/Profissional/), screen.getByRole('option', { name: /João/ }));
-    const dataHora = screen.getByLabelText(/Data e hora/);
-    await user.type(dataHora, '2025-06-01T10:00');
-    await user.click(screen.getByRole('button', { name: /Solicitar agendamento/ }));
+    await user.click(screen.getByRole('button', { name: /Confirmar agendamento/ }));
     await waitFor(() => {
       expect(screen.getByText(/Agendamento solicitado com sucesso/)).toBeInTheDocument();
     });
   });
 
-  it('shows day agenda with slots when date is set', async () => {
-    const { fetchPublicSlots } = await import('@/features/public/api');
-    vi.mocked(fetchPublicSlots).mockResolvedValueOnce([
-      {
-        staffId: 1,
-        staffNome: 'João',
-        dataHora: '2025-06-01T10:00:00.000Z',
-        dataHoraFim: '2025-06-01T10:30:00.000Z',
-        tipo: 'FIRME',
-        status: 'PENDENTE',
-      },
-      {
-        staffId: 1,
-        staffNome: 'João',
-        dataHora: '2025-06-01T14:00:00.000Z',
-        dataHoraFim: null,
-        tipo: 'ENCAIXE',
-        status: 'APROVADO',
-      },
-    ]);
+  it('shows confirmation form with selected date/time after clicking slot', async () => {
     const user = userEvent.setup();
     wrap(<AgendarPage />);
-    await screen.findByLabelText(/Serviço/);
-    const dataHoraInput = screen.getByLabelText(/Data e hora/);
-    await user.clear(dataHoraInput);
-    await user.type(dataHoraInput, '2025-06-01T10:00');
     await waitFor(() => {
-      expect(screen.getByText('Agenda do dia')).toBeInTheDocument();
+      expect(screen.getByText('Horário')).toBeInTheDocument();
     });
-    expect(screen.getByRole('heading', { name: 'Agenda do dia' })).toBeInTheDocument();
-    expect(screen.getByText('Pendente')).toBeInTheDocument();
-    expect(screen.getByText('Aprovado')).toBeInTheDocument();
+    const slotButtons = screen.getAllByTestId('slot-button');
+    expect(slotButtons.length).toBeGreaterThan(0);
+    await user.click(slotButtons[0]);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Serviço/)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/Data e horário:/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Escolher outro horário/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Confirmar agendamento/ })).toBeInTheDocument();
   });
 
   it('shows Cancelar in Meus agendamentos for firme aprovado', async () => {
