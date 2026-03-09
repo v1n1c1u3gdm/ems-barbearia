@@ -27,21 +27,23 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - Refatoração do domínio **Promoção → Serviço**: entidade `Servico` com `duracaoMinutos`; CRUD em `/admin/servicos`; dashboard e frontend atualizados (AdminServicosPage, rotas, menu). Migração Liquibase 010.
 - Entidade **Staff** (profissional/barbeiro): CRUD em `/admin/staff`; migração Liquibase 011; página admin `AdminStaffPage` com DataTable e modais.
 - **Agendamento** com tipo FIRME/ENCAIXE, FKs para Serviço e Staff, `dataHoraFim` calculada pela duração do serviço; validação de sobreposição apenas para tipo FIRME (mesmo staff). Migração Liquibase 012. Endpoints admin: list com filtros e intervalo `de`/`ate`, `PATCH /admin/agendamentos/{id}/status` para aprovar.
-- **API pública** de agendamento: `GET /api/servicos`, `GET /api/staff` (ativos), `POST /api/agendamentos` (status PENDENTE). Sem autenticação.
-- **Tela pública `/agendar`**: formulário para cliente escolher serviço, staff, data/hora e tipo (Firme/Encaixe); submit cria agendamento PENDENTE; link no header público.
+- **API pública** de agendamento: `GET /api/servicos`, `GET /api/staff` (ativos), `POST /api/agendamentos` (status PENDENTE). Autenticação pública com JWT (login/cadastro por email, OTP por telefone, OAuth Google/Apple); tratamento de erros de configuração OAuth no backend e exibição de mensagens via query params na página de agendamento.
+- **Tela pública `/agendar`**: gate "Entrar ou cadastrar" (Google, Apple, telefone/OTP, criar conta com email); após autenticação, formulário para serviço, staff, data/hora e tipo (Firme/Encaixe); submit cria agendamento PENDENTE; link no header público.
 - **Painel admin – calendário de agendamentos**: vista Dia/Semana, grade 6h–22h, blocos por agendamento (cores por status), indicador de hora atual; modal ao clicar no bloco com detalhes e botão Aprovar.
 - **Seed dos serviços EMS** (migração 013): inserção inicial dos 9 serviços (Corte, Barba, Sobrancelha, Barboterapia, Hidratação, Alisante, Pigmentação, Luzes, Platinado) com descrição e duração; executa apenas quando a tabela `servico` está vazia.
 - **Landing page – serviços dinâmicos**: seção "Nossos serviços" passa a consumir `GET /api/servicos` (TanStack Query); exibição dos serviços ativos com descrição; estados de loading e erro.
 - **Modelo Assinatura**: uma assinatura pertence a um cliente e agrupa um ou mais serviços; tabelas `assinatura` e `assinatura_servico` (migração 014); CRUD em `/admin/assinaturas`; página admin `AdminAssinaturasPage` com DataTable e modais (Ver, Editar, Excluir, Nova assinatura).
-- Testes E2E com Playwright em `tests/`: navegação na home, links do header/footer, rotas diretas (`/examples`, `/admin`); relatório HTML e gravação de vídeo; base URL `http://localhost:5173` (front em dev).
+- Testes E2E com Playwright em `tests/`: navegação (home, link Agendar, scroll Início/Serviços/Contato), proteção admin (`/admin`, `/admin/servicos`, `/admin/clientes` → login), página `/agendar` (gate de auth), login admin (erro e sucesso com `E2E_ADMIN_USER`/`E2E_ADMIN_PASSWORD`), smoke do footer; relatório HTML e vídeo; base `http://localhost:5173`; README com backend e credenciais E2E.
 - Testes unitários no backend: JaCoCo com cobertura mínima 80% (exclusões: aplicação principal e `config/`); testes para `HelloController`, `AuthController`, `ExampleController` (`@WebMvcTest`).
 - Testes unitários no frontend: Vitest + React Testing Library + jsdom; cobertura mínima 80% (exclusões: entry, routes, config, lib, features e páginas não cobertas); testes para layout (PublicHeader, PublicFooter, PageLayout, AdminLayout), ProtectedAdminRoute, Button, LandingPage.
 - Link do Instagram no footer (ícone SVG) apontando para o perfil da barbearia; endereço completo e link no rodapé.
 - Config de contato: `fullAddress` e `instagramUrl` em `ui/src/config/contact.ts`.
+- **Provérbio bíblico aleatório**: endpoint na API pública; tabela e seed de provérbios (referências em português); footer exibe provérbio aleatório (TanStack Query).
+- Lint de documentação: script `npm run lint:docs` passa a incluir `CLAUDE.md` e arquivos em `.github/`.
 
 ### Changed
 
-- Dashboard administrativo: total de "Promoções" substituído por "Serviços" (campo `servicos` no summary).
+- Dashboard administrativo: total de "Promoções" substituído por "Serviços" (campo `servicos` no summary); área "Contatos" substituída por "Relacionamentos" (`/admin/relacionamentos`). AGENTS.md com regras de cobertura obrigatória e migrações de banco.
 - Agendamento: modelo passa a usar `servico_id` e `staff_id`; coluna legada `servico` (string) removida.
 - Seção de contato da home: endereço removido da seção (mantidos título, texto, botões e mapa).
 - Footer: endereço exibido como `fullAddress` (Rua Doutor Romeo Ferro, 612 — Jardim Bonfiglioli, São Paulo); link do Instagram substitui texto por ícone.

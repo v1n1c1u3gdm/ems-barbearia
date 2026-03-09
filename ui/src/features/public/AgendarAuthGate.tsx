@@ -11,6 +11,7 @@ export function AgendarAuthGate({ onAuthenticated }: Props) {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
   const [telefone, setTelefone] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -20,6 +21,10 @@ export function AgendarAuthGate({ onAuthenticated }: Props) {
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (senha !== confirmarSenha) {
+      setError('As senhas não coincidem. Digite a mesma senha nos dois campos.');
+      return;
+    }
     setLoading(true);
     try {
       const { token } = await register({ nome, email, senha });
@@ -155,6 +160,15 @@ export function AgendarAuthGate({ onAuthenticated }: Props) {
             placeholder="Senha (mín. 6 caracteres)"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
+            className={inputClass}
+            required
+            minLength={6}
+          />
+          <input
+            type="password"
+            placeholder="Confirmar senha"
+            value={confirmarSenha}
+            onChange={(e) => setConfirmarSenha(e.target.value)}
             className={inputClass}
             required
             minLength={6}

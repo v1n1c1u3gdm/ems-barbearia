@@ -2,6 +2,7 @@ package com.emsbarbearia.service;
 
 import com.emsbarbearia.dto.AgendamentoRequest;
 import com.emsbarbearia.dto.AgendamentoResponse;
+import com.emsbarbearia.dto.PublicSlotResponse;
 import com.emsbarbearia.entity.Agendamento;
 import com.emsbarbearia.entity.Cliente;
 import com.emsbarbearia.entity.Servico;
@@ -54,6 +55,25 @@ public class AgendamentoService {
         if (staffId != null) stream = stream.filter(a -> a.getStaff() != null && a.getStaff().getId().equals(staffId));
         if (status != null && !status.isBlank()) stream = stream.filter(a -> status.equals(a.getStatus()));
         return stream.map(this::toResponse).toList();
+    }
+
+    public List<PublicSlotResponse> listPublicSlots(Instant de, Instant ate, Long staffId) {
+        if (de == null || ate == null) return List.of();
+        Stream<Agendamento> stream = repository.findByDataHoraBetweenOrderByDataHora(de, ate).stream();
+        if (staffId != null) stream = stream.filter(a -> a.getStaff() != null && a.getStaff().getId().equals(staffId));
+        return stream.map(this::toPublicSlotResponse).toList();
+    }
+
+    private PublicSlotResponse toPublicSlotResponse(Agendamento entity) {
+        Staff st = entity.getStaff();
+        return new PublicSlotResponse(
+            st != null ? st.getId() : null,
+            st != null ? st.getNome() : null,
+            entity.getDataHora(),
+            entity.getDataHoraFim(),
+            entity.getTipo(),
+            entity.getStatus()
+        );
     }
 
     public Optional<AgendamentoResponse> getById(Long id) {

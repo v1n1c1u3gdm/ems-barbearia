@@ -4,6 +4,7 @@ import com.emsbarbearia.dto.AgendamentoRequest;
 import com.emsbarbearia.dto.AgendamentoResponse;
 import com.emsbarbearia.dto.ProverbioResponse;
 import com.emsbarbearia.dto.PublicAgendamentoRequest;
+import com.emsbarbearia.dto.PublicSlotResponse;
 import com.emsbarbearia.dto.ServicoResponse;
 import com.emsbarbearia.dto.StaffResponse;
 import com.emsbarbearia.service.AgendamentoService;
@@ -16,8 +17,10 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -48,6 +51,15 @@ public class PublicApiController {
     @Operation(summary = "List active staff for booking form")
     public List<StaffResponse> listStaff() {
         return staffService.listAtivos();
+    }
+
+    @GetMapping("/agendamentos/slots")
+    @Operation(summary = "List slots for a date range (public day agenda); optional staffId filter")
+    public List<PublicSlotResponse> listSlots(
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant de,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant ate,
+        @RequestParam(required = false) Long staffId) {
+        return agendamentoService.listPublicSlots(de, ate, staffId);
     }
 
     @GetMapping("/proverbios/random")

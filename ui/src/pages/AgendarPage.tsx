@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { fetchPublicServicos, fetchPublicStaff } from '@/features/admin/api';
 import type { StaffResponse, HorarioFuncionamentoStaff } from '@/features/admin/api';
 import { getPublicToken, setPublicToken } from '@/features/public/auth';
-import { createPublicAgendamento } from '@/features/public/api';
+import { createPublicAgendamento, fetchPublicSlots } from '@/features/public/api';
 import { AgendarAuthGate } from '@/features/public/AgendarAuthGate';
 
 function formatDisponibilidade(horarios: HorarioFuncionamentoStaff[] | undefined): string {
@@ -23,6 +23,20 @@ function formatDisponibilidade(horarios: HorarioFuncionamentoStaff[] | undefined
 function toISO(dataHoraLocal: string): string {
   if (!dataHoraLocal) return '';
   return new Date(dataHoraLocal).toISOString();
+}
+
+function dayRangeFromDateInput(dataHoraLocal: string): { de: string; ate: string } | null {
+  if (!dataHoraLocal || dataHoraLocal.length < 10) return null;
+  const d = new Date(dataHoraLocal);
+  const start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  return { de: start.toISOString(), ate: end.toISOString() };
+}
+
+function formatSlotTime(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
 function getInitialErrorFromUrl(): string | null {
@@ -61,6 +75,19 @@ export function AgendarPage() {
   const { data: staffList = [] } = useQuery({
     queryKey: ['public', 'staff'],
     queryFn: () => fetchPublicStaff(),
+  });
+
+  const dayRange = useMemo(() => dayRangeFromDateInput(dataHora), [dataHora]);
+  const staffIdNum = staffId ? Number(staffId) : undefined;
+  const { data: daySlots = [] } = useQuery({
+    queryKey: ['public', 'slots', dayRange?.de, dayRange?.ate, staffIdNum],
+    queryFn: () =>
+      fetchPublicSlots({
+        de: dayRange!.de,
+        ate: dayRange!.ate,
+        staffId: staffIdNum,
+      }),
+    enabled: !!dayRange?.de && !!dayRange?.ate,
   });
 
   const createMutation = useMutation({
@@ -192,6 +219,33 @@ export function AgendarPage() {
             required
           />
         </div>
+
+        {dayRange && staffId && (
+          <div className="rounded-lg border border-zinc-700 bg-zinc-800/50 p-3">
+            <p className="mb-2 text-sm font-medium text-zinc-300">Agenda do dia (para este profissional)</p>
+            {daySlots.length === 0 ? (
+              <p className="text-sm text-zinc-500">Nenhum agendamento neste dia.</p>
+            ) : (
+              <ul className="space-y-1 text-sm text-zinc-400">
+                {daySlots.map((slot, i) => (
+                  <li key={i}>
+                    {formatSlotTime(slot.dataHora)}–{slot.dataHoraFim ? formatSlotTime(slot.dataHoraFim) : '?'}{' '}
+                    <span className={slot.tipo === 'FIRME' ? 'text-amber-400' : 'text-zinc-500'}>
+                      {slot.tipo === 'FIRME' ? 'Firme' : 'Encaixe'}
+                    </span>
+                    {slot.status === 'PENDENTE' && (
+                      <span className="ml-1 text-amber-500/80">(pendente)</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="mt-2 text-xs text-zinc-500">
+              <strong>Firme:</strong> horário fixo — escolha um horário livre. <strong>Encaixe:</strong> pode ser
+              encaixado entre outros agendamentos.
+            </p>
+          </div>
+        )}
 
         <div>
           <span className="mb-2 block text-sm font-medium text-zinc-300">Tipo</span>

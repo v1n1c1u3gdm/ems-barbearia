@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.emsbarbearia.dto.AgendamentoRequest;
 import com.emsbarbearia.dto.AgendamentoResponse;
+import com.emsbarbearia.dto.PublicSlotResponse;
 import com.emsbarbearia.entity.Agendamento;
 import com.emsbarbearia.entity.Cliente;
 import com.emsbarbearia.entity.Servico;
@@ -90,6 +91,38 @@ class AgendamentoServiceTest {
 
         assertThat(result).hasSize(1);
         verify(repository).findByDataHoraBetweenOrderByDataHora(de, ate);
+    }
+
+    @Test
+    void listPublicSlots_shouldReturnEmptyWhenDeNull() {
+        List<PublicSlotResponse> result = service.listPublicSlots(null, Instant.parse("2025-06-02T00:00:00Z"), null);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void listPublicSlots_shouldReturnEmptyWhenAteNull() {
+        List<PublicSlotResponse> result = service.listPublicSlots(Instant.parse("2025-06-01T00:00:00Z"), null, null);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void listPublicSlots_shouldReturnSlotsWithoutClientData() {
+        Instant de = Instant.parse("2025-06-01T00:00:00Z");
+        Instant ate = Instant.parse("2025-06-02T00:00:00Z");
+        Cliente cliente = cliente(10L, "Cliente");
+        Servico servico = servico(1L, "Corte", 30);
+        Staff staff = staff(1L, "João");
+        Agendamento ag = agendamento(1L, cliente, servico, staff, Instant.parse("2025-06-01T10:00:00Z"), "FIRME", "PENDENTE");
+        when(repository.findByDataHoraBetweenOrderByDataHora(de, ate)).thenReturn(List.of(ag));
+
+        List<PublicSlotResponse> result = service.listPublicSlots(de, ate, null);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).staffId()).isEqualTo(1L);
+        assertThat(result.get(0).staffNome()).isEqualTo("João");
+        assertThat(result.get(0).dataHora()).isEqualTo(Instant.parse("2025-06-01T10:00:00Z"));
+        assertThat(result.get(0).tipo()).isEqualTo("FIRME");
+        assertThat(result.get(0).status()).isEqualTo("PENDENTE");
     }
 
     @Test

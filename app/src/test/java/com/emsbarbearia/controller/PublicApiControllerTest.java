@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.emsbarbearia.config.PublicClienteAuthentication;
 import com.emsbarbearia.dto.AgendamentoResponse;
 import com.emsbarbearia.dto.ProverbioResponse;
+import com.emsbarbearia.dto.PublicSlotResponse;
 import com.emsbarbearia.dto.ServicoResponse;
 import com.emsbarbearia.dto.StaffResponse;
 import com.emsbarbearia.service.AgendamentoService;
@@ -73,6 +74,22 @@ class PublicApiControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].nome").value("João"));
+    }
+
+    @Test
+    void listSlots_shouldReturn200AndSlotsForDateRange() throws Exception {
+        PublicSlotResponse slot = new PublicSlotResponse(
+            1L, "João", Instant.parse("2025-06-01T10:00:00Z"),
+            Instant.parse("2025-06-01T10:30:00Z"), "FIRME", "PENDENTE");
+        when(agendamentoService.listPublicSlots(any(), any(), any())).thenReturn(List.of(slot));
+
+        mockMvc.perform(get("/agendamentos/slots")
+                .param("de", "2025-06-01T00:00:00Z")
+                .param("ate", "2025-06-02T00:00:00Z"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].staffNome").value("João"))
+            .andExpect(jsonPath("$[0].tipo").value("FIRME"));
     }
 
     @Test

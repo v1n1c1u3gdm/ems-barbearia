@@ -39,6 +39,27 @@ export type AgendamentoResponse = {
   createdAt: string;
 };
 
+export type PublicSlotResponse = {
+  staffId: number | null;
+  staffNome: string | null;
+  dataHora: string;
+  dataHoraFim: string | null;
+  tipo: string;
+  status: string;
+};
+
+export async function fetchPublicSlots(params: {
+  de: string;
+  ate: string;
+  staffId?: number;
+}): Promise<PublicSlotResponse[]> {
+  const q = new URLSearchParams({ de: params.de, ate: params.ate });
+  if (params.staffId != null) q.set('staffId', String(params.staffId));
+  const res = await fetch(`${API_BASE}/agendamentos/slots?${q}`);
+  if (!res.ok) throw new Error('Erro ao carregar agenda do dia');
+  return res.json() as Promise<PublicSlotResponse[]>;
+}
+
 function authHeaders(): Record<string, string> {
   const token = getPublicToken();
   const h: Record<string, string> = { 'Content-Type': 'application/json' };

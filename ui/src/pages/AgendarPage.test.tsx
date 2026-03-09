@@ -30,6 +30,7 @@ vi.mock('@/features/public/api', async (importOriginal) => {
         createdAt: '2025-01-01T00:00:00Z',
       })
     ),
+    fetchPublicSlots: vi.fn(() => Promise.resolve([])),
   };
 });
 
