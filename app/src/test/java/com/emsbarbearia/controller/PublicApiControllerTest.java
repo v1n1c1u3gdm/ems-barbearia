@@ -95,7 +95,7 @@ class PublicApiControllerTest {
         SecurityContextHolder.getContext().setAuthentication(new PublicClienteAuthentication(10L));
         AgendamentoResponse response = new AgendamentoResponse(
             1L, 10L, "Cliente", 1L, "Corte", 1L, "João",
-            Instant.now(), null, "FIRME", "CANCELADO", Instant.now());
+            Instant.now(), null, "FIRME", "CANCELADO", Instant.now(), null);
         when(agendamentoService.cancelByCliente(1L, 10L)).thenReturn(Optional.of(response));
 
         mockMvc.perform(patch("/agendamentos/1/cancel"))
@@ -108,7 +108,7 @@ class PublicApiControllerTest {
         SecurityContextHolder.getContext().setAuthentication(new PublicClienteAuthentication(10L));
         AgendamentoResponse response = new AgendamentoResponse(
             1L, 10L, "Cliente", 1L, "Corte", 1L, "João",
-            Instant.parse("2025-06-01T10:00:00Z"), null, "FIRME", "PENDENTE", Instant.now());
+            Instant.parse("2025-06-01T10:00:00Z"), null, "FIRME", "PENDENTE", Instant.now(), null);
         when(agendamentoService.list(eq(10L), isNull(), isNull(), isNull(), isNull())).thenReturn(List.of(response));
 
         mockMvc.perform(get("/agendamentos/me"))
@@ -150,7 +150,7 @@ class PublicApiControllerTest {
         SecurityContextHolder.getContext().setAuthentication(new PublicClienteAuthentication(10L));
         AgendamentoResponse response = new AgendamentoResponse(
             1L, 10L, "Cliente", 1L, "Corte", 1L, "João",
-            Instant.now(), null, "FIRME", "PENDENTE", Instant.now());
+            Instant.now(), null, "FIRME", "PENDENTE", Instant.now(), null);
         when(agendamentoService.create(any())).thenReturn(Optional.of(response));
 
         mockMvc.perform(post("/agendamentos")

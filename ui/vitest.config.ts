@@ -16,6 +16,8 @@ export default defineConfig({
       exclude: [
         'node_modules/',
         'src/test/',
+        '**/*.test.{ts,tsx}',
+        '**/*.spec.{ts,tsx}',
         'src/main.tsx',
         'src/App.tsx',
         'src/routes/index.tsx',

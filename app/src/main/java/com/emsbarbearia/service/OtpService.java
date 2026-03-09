@@ -29,15 +29,17 @@ public class OtpService {
     private final ClienteCredentialRepository credentialRepository;
     private final OtpSender otpSender;
     private final JwtPublicService jwtPublicService;
+    private final AuditLogService auditLogService;
 
     public OtpService(OtpRequestRepository otpRequestRepository, ClienteRepository clienteRepository,
                      ClienteCredentialRepository credentialRepository, OtpSender otpSender,
-                     JwtPublicService jwtPublicService) {
+                     JwtPublicService jwtPublicService, AuditLogService auditLogService) {
         this.otpRequestRepository = otpRequestRepository;
         this.clienteRepository = clienteRepository;
         this.credentialRepository = credentialRepository;
         this.otpSender = otpSender;
         this.jwtPublicService = jwtPublicService;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -55,6 +57,7 @@ public class OtpService {
         otp.setExpiresAt(expiresAt);
         otpRequestRepository.save(otp);
         otpSender.send(normalized, code);
+        auditLogService.log("POST /auth/public/otp/request", null, null);
     }
 
     @Transactional
@@ -73,6 +76,7 @@ public class OtpService {
                 c.setPasswordHash(null);
                 return credentialRepository.save(c);
             });
+        auditLogService.log("POST /auth/public/otp/verify", null, null);
         return jwtPublicService.createToken(cred.getCliente().getId());
     }
 

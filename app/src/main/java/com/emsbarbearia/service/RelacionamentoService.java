@@ -19,10 +19,13 @@ public class RelacionamentoService {
 
     private final RelacionamentoRepository repository;
     private final ClienteRepository clienteRepository;
+    private final AuditLogService auditLogService;
 
-    public RelacionamentoService(RelacionamentoRepository repository, ClienteRepository clienteRepository) {
+    public RelacionamentoService(RelacionamentoRepository repository, ClienteRepository clienteRepository,
+                                 AuditLogService auditLogService) {
         this.repository = repository;
         this.clienteRepository = clienteRepository;
+        this.auditLogService = auditLogService;
     }
 
     public List<RelacionamentoResponse> list(CanalRelacionamento canal, StatusRelacionamento status) {
@@ -58,10 +61,13 @@ public class RelacionamentoService {
         if (request.clienteId() != null) {
             clienteRepository.findById(request.clienteId()).ifPresent(entity::setCliente);
         }
-        return toResponse(repository.save(entity));
+        RelacionamentoResponse response = toResponse(repository.save(entity));
+        auditLogService.log("POST /admin/relacionamentos", null, response);
+        return response;
     }
 
     public Optional<RelacionamentoResponse> update(Long id, RelacionamentoUpdateRequest request) {
+        Optional<RelacionamentoResponse> beforeOpt = repository.findById(id).map(this::toResponse);
         return repository.findById(id)
             .map(entity -> {
                 if (request.status() != null) {
@@ -75,14 +81,18 @@ public class RelacionamentoService {
                 }
                 return repository.save(entity);
             })
-            .map(this::toResponse);
+            .map(e -> {
+                RelacionamentoResponse after = toResponse(e);
+                auditLogService.log("PUT /admin/relacionamentos", beforeOpt.orElse(null), after);
+                return after;
+            });
     }
 
     public boolean delete(Long id) {
-        if (!repository.existsById(id)) {
-            return false;
-        }
+        Optional<RelacionamentoResponse> before = repository.findById(id).map(this::toResponse);
+        if (before.isEmpty()) return false;
         repository.deleteById(id);
+        auditLogService.log("DELETE /admin/relacionamentos", before.get(), null);
         return true;
     }
 

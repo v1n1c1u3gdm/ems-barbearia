@@ -43,6 +43,9 @@ class AgendamentoServiceTest {
     @Mock
     StaffRepository staffRepository;
 
+    @Mock
+    AuditLogService auditLogService;
+
     @InjectMocks
     AgendamentoService service;
 
@@ -129,6 +132,44 @@ class AgendamentoServiceTest {
     }
 
     @Test
+    void listPublicSlots_shouldExcludeCancelled() {
+        Instant de = Instant.parse("2025-06-01T00:00:00Z");
+        Instant ate = Instant.parse("2025-06-02T00:00:00Z");
+        Cliente cliente = cliente(10L, "Cliente");
+        Servico servico = servico(1L, "Corte", 30);
+        Staff staff = staff(1L, "João");
+        Agendamento pendente = agendamento(1L, cliente, servico, staff, Instant.parse("2025-06-01T10:00:00Z"), "FIRME", "PENDENTE");
+        Agendamento cancelado = agendamento(2L, cliente, servico, staff, Instant.parse("2025-06-01T11:00:00Z"), "FIRME", "CANCELADO");
+        when(repository.findByDataHoraBetweenOrderByDataHora(de, ate)).thenReturn(List.of(pendente, cancelado));
+
+        List<PublicSlotResponse> result = service.listPublicSlots(de, ate, null);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).status()).isEqualTo("PENDENTE");
+    }
+
+    @Test
+    void listPublicSlots_shouldOrderByDataHoraThenCreatedAt() {
+        Instant de = Instant.parse("2025-06-01T00:00:00Z");
+        Instant ate = Instant.parse("2025-06-02T00:00:00Z");
+        Cliente cliente = cliente(10L, "Cliente");
+        Servico servico = servico(1L, "Corte", 30);
+        Staff staff = staff(1L, "João");
+        Instant slot = Instant.parse("2025-06-01T10:00:00Z");
+        Agendamento first = agendamento(1L, cliente, servico, staff, slot, "ENCAIXE", "PENDENTE");
+        first.setCreatedAt(Instant.parse("2025-06-01T08:00:00Z"));
+        Agendamento second = agendamento(2L, cliente, servico, staff, slot, "ENCAIXE", "PENDENTE");
+        second.setCreatedAt(Instant.parse("2025-06-01T09:00:00Z"));
+        when(repository.findByDataHoraBetweenOrderByDataHora(de, ate)).thenReturn(List.of(second, first));
+
+        List<PublicSlotResponse> result = service.listPublicSlots(de, ate, null);
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).dataHora()).isEqualTo(slot);
+        assertThat(result.get(0).dataHora()).isEqualTo(result.get(1).dataHora());
+    }
+
+    @Test
     void getById_shouldReturnEmptyWhenNotFound() {
         when(repository.findById(999L)).thenReturn(Optional.empty());
         assertThat(service.getById(999L)).isEmpty();
@@ -189,6 +230,7 @@ class AgendamentoServiceTest {
         when(repository.findOverlappingFirmeByStaff(eq(1L), any(Instant.class), any(Instant.class))).thenReturn(List.of());
         Agendamento saved = agendamento(1L, c, s, st, Instant.parse("2025-06-01T10:00:00Z"), "FIRME", "PENDENTE");
         when(repository.save(any(Agendamento.class))).thenReturn(saved);
+        when(repository.findOverlappingByStaffOrderByDataHoraCreatedAt(eq(1L), any(Instant.class), any(Instant.class))).thenReturn(List.of(saved));
         AgendamentoRequest request = new AgendamentoRequest(10L, 1L, 1L, Instant.parse("2025-06-01T10:00:00Z"), "FIRME", "PENDENTE");
 
         Optional<AgendamentoResponse> result = service.create(request);
@@ -196,6 +238,7 @@ class AgendamentoServiceTest {
         assertThat(result).isPresent();
         assertThat(result.get().id()).isEqualTo(1L);
         assertThat(result.get().clienteNome()).isEqualTo("Cliente");
+        assertThat(result.get().tamanhoFilaSlot()).isEqualTo(1);
         verify(repository).save(any(Agendamento.class));
     }
 
@@ -214,6 +257,79 @@ class AgendamentoServiceTest {
         assertThatThrownBy(() -> service.create(request))
             .isInstanceOf(ResponseStatusException.class)
             .hasMessageContaining("Horário já ocupado");
+    }
+
+    @Test
+    void create_shouldAllowEncaixeWhenFirmeExistsInSlot() {
+        Cliente c = cliente(10L, "C");
+        Servico s = servico(1L, "Corte", 30);
+        Staff st = staff(1L, "João");
+        Agendamento existingFirme = agendamento(2L, c, s, st, Instant.parse("2025-06-01T10:00:00Z"), "FIRME", "APROVADO");
+        when(clienteRepository.findById(10L)).thenReturn(Optional.of(c));
+        when(servicoRepository.findById(1L)).thenReturn(Optional.of(s));
+        when(staffRepository.findById(1L)).thenReturn(Optional.of(st));
+        Agendamento saved = agendamento(3L, c, s, st, Instant.parse("2025-06-01T10:00:00Z"), "ENCAIXE", "PENDENTE");
+        when(repository.save(any(Agendamento.class))).thenReturn(saved);
+        when(repository.findOverlappingByStaffOrderByDataHoraCreatedAt(eq(1L), any(Instant.class), any(Instant.class)))
+            .thenReturn(List.of(existingFirme))
+            .thenReturn(List.of(existingFirme, saved));
+        AgendamentoRequest request = new AgendamentoRequest(10L, 1L, 1L, Instant.parse("2025-06-01T10:00:00Z"), "ENCAIXE", null);
+
+        Optional<AgendamentoResponse> result = service.create(request);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().tipo()).isEqualTo("ENCAIXE");
+        assertThat(result.get().tamanhoFilaSlot()).isEqualTo(2);
+        verify(repository).save(any(Agendamento.class));
+    }
+
+    @Test
+    void create_shouldAllowFirmeWhenOnlyCancelledFirmeOverlaps() {
+        Cliente c = cliente(10L, "C");
+        Servico s = servico(1L, "Corte", 30);
+        Staff st = staff(1L, "João");
+        when(clienteRepository.findById(10L)).thenReturn(Optional.of(c));
+        when(servicoRepository.findById(1L)).thenReturn(Optional.of(s));
+        when(staffRepository.findById(1L)).thenReturn(Optional.of(st));
+        when(repository.findOverlappingFirmeByStaff(eq(1L), any(Instant.class), any(Instant.class))).thenReturn(List.of());
+        Agendamento saved = agendamento(1L, c, s, st, Instant.parse("2025-06-01T10:00:00Z"), "FIRME", "PENDENTE");
+        when(repository.save(any(Agendamento.class))).thenReturn(saved);
+        when(repository.findOverlappingByStaffOrderByDataHoraCreatedAt(eq(1L), any(Instant.class), any(Instant.class))).thenReturn(List.of(saved));
+        AgendamentoRequest request = new AgendamentoRequest(10L, 1L, 1L, Instant.parse("2025-06-01T10:00:00Z"), "FIRME", null);
+
+        Optional<AgendamentoResponse> result = service.create(request);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().tipo()).isEqualTo("FIRME");
+        verify(repository).save(any(Agendamento.class));
+    }
+
+    @Test
+    void create_shouldPromoteEncaixeToFirmeWhenSlotEmpty() {
+        Cliente c = cliente(10L, "C");
+        Servico s = servico(1L, "Corte", 30);
+        Staff st = staff(1L, "João");
+        when(clienteRepository.findById(10L)).thenReturn(Optional.of(c));
+        when(servicoRepository.findById(1L)).thenReturn(Optional.of(s));
+        when(staffRepository.findById(1L)).thenReturn(Optional.of(st));
+        Agendamento saved = agendamento(1L, c, s, st, Instant.parse("2025-06-01T10:00:00Z"), "FIRME", "PENDENTE");
+        when(repository.findOverlappingByStaffOrderByDataHoraCreatedAt(eq(1L), any(Instant.class), any(Instant.class)))
+            .thenReturn(List.of())
+            .thenReturn(List.of(saved));
+        when(repository.save(any(Agendamento.class))).thenAnswer(inv -> {
+            Agendamento entity = inv.getArgument(0);
+            entity.setId(1L);
+            entity.setTipo(entity.getTipo());
+            return entity;
+        });
+        AgendamentoRequest request = new AgendamentoRequest(10L, 1L, 1L, Instant.parse("2025-06-01T10:00:00Z"), "ENCAIXE", null);
+
+        Optional<AgendamentoResponse> result = service.create(request);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().tipo()).isEqualTo("FIRME");
+        assertThat(result.get().tamanhoFilaSlot()).isEqualTo(1);
+        verify(repository).save(any(Agendamento.class));
     }
 
     @Test
@@ -274,7 +390,7 @@ class AgendamentoServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(ag));
 
         assertThat(service.cancelByCliente(1L, 99L)).isEmpty();
-        verify(repository).findById(1L);
+        verify(repository, org.mockito.Mockito.times(2)).findById(1L);
     }
 
     @Test
@@ -295,13 +411,17 @@ class AgendamentoServiceTest {
 
     @Test
     void delete_shouldReturnFalseWhenNotExists() {
-        when(repository.existsById(999L)).thenReturn(false);
+        when(repository.findById(999L)).thenReturn(Optional.empty());
         assertThat(service.delete(999L)).isFalse();
     }
 
     @Test
     void delete_shouldDeleteAndReturnTrueWhenExists() {
-        when(repository.existsById(1L)).thenReturn(true);
+        Cliente cliente = cliente(10L, "C");
+        Servico servico = servico(1L, "Corte", 30);
+        Staff staff = staff(1L, "João");
+        Agendamento entity = agendamento(1L, cliente, servico, staff, Instant.now(), "FIRME", "PENDENTE");
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
         assertThat(service.delete(1L)).isTrue();
         verify(repository).deleteById(1L);
     }

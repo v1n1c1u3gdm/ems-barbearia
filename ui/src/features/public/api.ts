@@ -37,6 +37,7 @@ export type AgendamentoResponse = {
   tipo: string;
   status: string;
   createdAt: string;
+  tamanhoFilaSlot?: number | null;
 };
 
 export type PublicSlotResponse = {

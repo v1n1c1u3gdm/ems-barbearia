@@ -32,6 +32,9 @@ class RelacionamentoServiceTest {
     @Mock
     ClienteRepository clienteRepository;
 
+    @Mock
+    AuditLogService auditLogService;
+
     @InjectMocks
     RelacionamentoService service;
 
@@ -117,13 +120,14 @@ class RelacionamentoServiceTest {
 
     @Test
     void delete_shouldReturnFalseWhenNotExists() {
-        when(repository.existsById(999L)).thenReturn(false);
+        when(repository.findById(999L)).thenReturn(Optional.empty());
         assertThat(service.delete(999L)).isFalse();
     }
 
     @Test
     void delete_shouldDeleteAndReturnTrueWhenExists() {
-        when(repository.existsById(1L)).thenReturn(true);
+        Relacionamento entity = relacionamento(1L, CanalRelacionamento.EMAIL, StatusRelacionamento.QUENTE);
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
         assertThat(service.delete(1L)).isTrue();
         verify(repository).deleteById(1L);
     }

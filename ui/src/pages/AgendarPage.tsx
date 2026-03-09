@@ -191,10 +191,16 @@ export function AgendarPage() {
 
   const agendamentosInRange = useMemo(() => {
     return myAgendamentos.filter((ag) => {
+      if (ag.status === 'CANCELADO') return false;
       const t = new Date(ag.dataHora).getTime();
       return t >= new Date(calendarDe).getTime() && t < new Date(calendarAte).getTime();
     });
   }, [myAgendamentos, calendarDe, calendarAte]);
+
+  const myAgendamentosAtivos = useMemo(
+    () => myAgendamentos.filter((ag) => ag.status !== 'CANCELADO'),
+    [myAgendamentos]
+  );
 
   const defaultStartMinutes = parseTimeToMinutes(DEFAULT_HORA_INICIO);
   const defaultEndMinutes = parseTimeToMinutes(DEFAULT_HORA_FIM);
@@ -568,11 +574,11 @@ export function AgendarPage() {
 
       {myAgendamentosLoading ? (
         <p className="mb-6 text-sm text-zinc-500">Carregando seus agendamentos…</p>
-      ) : myAgendamentos.length > 0 ? (
+      ) : myAgendamentosAtivos.length > 0 ? (
         <section className="mb-8 rounded-lg border border-zinc-700 bg-zinc-900/80 p-4">
           <h2 className="mb-3 text-lg font-semibold text-zinc-200">Meus agendamentos</h2>
           <ul className="space-y-2">
-            {myAgendamentos.map((ag) => (
+            {myAgendamentosAtivos.map((ag) => (
               <li
                 key={ag.id}
                 className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded border border-zinc-700 bg-zinc-800/80 px-3 py-2 text-sm"

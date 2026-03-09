@@ -11,8 +11,11 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
 
     List<Agendamento> findByClienteId(Long clienteId);
 
-    @Query("SELECT a FROM Agendamento a WHERE a.staff.id = :staffId AND a.tipo = 'FIRME' AND a.dataHora < :end AND (a.dataHoraFim IS NULL OR a.dataHoraFim > :start)")
+    @Query("SELECT a FROM Agendamento a WHERE a.staff.id = :staffId AND a.tipo = 'FIRME' AND a.status <> 'CANCELADO' AND a.dataHora < :end AND (a.dataHoraFim IS NULL OR a.dataHoraFim > :start)")
     List<Agendamento> findOverlappingFirmeByStaff(Long staffId, Instant start, Instant end);
+
+    @Query("SELECT a FROM Agendamento a WHERE a.staff.id = :staffId AND a.status <> 'CANCELADO' AND a.dataHora < :end AND (a.dataHoraFim IS NULL OR a.dataHoraFim > :start) ORDER BY a.dataHora, a.createdAt")
+    List<Agendamento> findOverlappingByStaffOrderByDataHoraCreatedAt(Long staffId, Instant start, Instant end);
 
     List<Agendamento> findByStaffId(Long staffId);
 

@@ -24,6 +24,9 @@ class ClienteServiceTest {
     @Mock
     ClienteRepository repository;
 
+    @Mock
+    AuditLogService auditLogService;
+
     @InjectMocks
     ClienteService service;
 
@@ -107,15 +110,15 @@ class ClienteServiceTest {
 
     @Test
     void delete_shouldReturnFalseWhenNotExists() {
-        when(repository.existsById(999L)).thenReturn(false);
+        when(repository.findById(999L)).thenReturn(Optional.empty());
 
         assertThat(service.delete(999L)).isFalse();
-        verify(repository).existsById(999L);
     }
 
     @Test
     void delete_shouldDeleteAndReturnTrueWhenExists() {
-        when(repository.existsById(1L)).thenReturn(true);
+        Cliente entity = cliente(1L, "A", "a@x.com", null);
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
 
         assertThat(service.delete(1L)).isTrue();
         verify(repository).deleteById(1L);

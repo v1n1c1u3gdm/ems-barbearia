@@ -21,15 +21,18 @@ public class PublicAuthService {
     private final ClienteCredentialRepository credentialRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtPublicService jwtPublicService;
+    private final AuditLogService auditLogService;
 
     public PublicAuthService(ClienteRepository clienteRepository,
                             ClienteCredentialRepository credentialRepository,
                             PasswordEncoder passwordEncoder,
-                            JwtPublicService jwtPublicService) {
+                            JwtPublicService jwtPublicService,
+                            AuditLogService auditLogService) {
         this.clienteRepository = clienteRepository;
         this.credentialRepository = credentialRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtPublicService = jwtPublicService;
+        this.auditLogService = auditLogService;
     }
 
     public String register(PublicRegisterRequest request) {
@@ -49,6 +52,7 @@ public class PublicAuthService {
         cred.setPasswordHash(passwordEncoder.encode(request.senha()));
         credentialRepository.save(cred);
 
+        auditLogService.log("POST /auth/public/register", null, null);
         return jwtPublicService.createToken(cliente.getId());
     }
 
@@ -58,6 +62,7 @@ public class PublicAuthService {
         if (!passwordEncoder.matches(request.senha(), cred.getPasswordHash())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas");
         }
+        auditLogService.log("POST /auth/public/login", null, null);
         return jwtPublicService.createToken(cred.getCliente().getId());
     }
 

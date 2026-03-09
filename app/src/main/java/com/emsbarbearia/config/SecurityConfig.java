@@ -1,5 +1,6 @@
 package com.emsbarbearia.config;
 
+import com.emsbarbearia.service.AuditLogService;
 import com.emsbarbearia.service.JwtPublicService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,9 +19,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, JwtPublicService jwtPublicService) throws Exception {
+    public AuditFilter auditFilter(AuditLogService auditLogService) {
+        return new AuditFilter(auditLogService);
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtPublicService jwtPublicService, AuditFilter auditFilter) throws Exception {
         http.csrf(csrf -> csrf.disable())
             .addFilterBefore(new JwtPublicFilter(jwtPublicService), UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(auditFilter, JwtPublicFilter.class)
             .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.GET, "/auth/public/me").authenticated()

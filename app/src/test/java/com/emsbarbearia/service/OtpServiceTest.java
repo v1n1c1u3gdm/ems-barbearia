@@ -41,6 +41,9 @@ class OtpServiceTest {
     @Mock
     JwtPublicService jwtPublicService;
 
+    @Mock
+    AuditLogService auditLogService;
+
     @InjectMocks
     OtpService otpService;
 

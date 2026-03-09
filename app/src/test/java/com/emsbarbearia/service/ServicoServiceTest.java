@@ -2,6 +2,8 @@ package com.emsbarbearia.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +25,9 @@ class ServicoServiceTest {
 
     @Mock
     ServicoRepository repository;
+
+    @Mock
+    AuditLogService auditLogService;
 
     @InjectMocks
     ServicoService service;
@@ -79,6 +84,7 @@ class ServicoServiceTest {
         assertThat(result.ativo()).isTrue();
         assertThat(result.duracaoMinutos()).isEqualTo(30);
         verify(repository).save(any(Servico.class));
+        verify(auditLogService).log(eq("POST /admin/servicos"), isNull(), eq(result));
     }
 
     @Test
@@ -90,15 +96,17 @@ class ServicoServiceTest {
 
     @Test
     void delete_shouldReturnFalseWhenNotExists() {
-        when(repository.existsById(999L)).thenReturn(false);
+        when(repository.findById(999L)).thenReturn(Optional.empty());
         assertThat(service.delete(999L)).isFalse();
     }
 
     @Test
     void delete_shouldDeleteAndReturnTrueWhenExists() {
-        when(repository.existsById(1L)).thenReturn(true);
+        Servico entity = servico(1L, "Corte", true, 30);
+        when(repository.findById(1L)).thenReturn(Optional.of(entity));
         assertThat(service.delete(1L)).isTrue();
         verify(repository).deleteById(1L);
+        verify(auditLogService).log(eq("DELETE /admin/servicos"), any(ServicoResponse.class), isNull());
     }
 
     private static Servico servico(Long id, String titulo, boolean ativo, Integer duracaoMinutos) {

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="024-create-audit-log-table" author="ems-barbearia">
+        <createTable tableName="audit_log">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="data_hora" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="acao" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="estado_anterior" type="TEXT"/>
+            <column name="estado_posterior" type="TEXT"/>
+            <column name="solicitante" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metodo_http" type="VARCHAR(10)"/>
+            <column name="path" type="VARCHAR(500)"/>
+            <column name="status_http" type="INT"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

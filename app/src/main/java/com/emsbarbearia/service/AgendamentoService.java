@@ -26,19 +26,23 @@ import java.util.stream.Stream;
 public class AgendamentoService {
 
     private static final String TIPO_FIRME = "FIRME";
+    private static final String TIPO_ENCAIXE = "ENCAIXE";
     private static final String STATUS_PENDENTE = "PENDENTE";
 
     private final AgendamentoRepository repository;
     private final ClienteRepository clienteRepository;
     private final ServicoRepository servicoRepository;
     private final StaffRepository staffRepository;
+    private final AuditLogService auditLogService;
 
     public AgendamentoService(AgendamentoRepository repository, ClienteRepository clienteRepository,
-                             ServicoRepository servicoRepository, StaffRepository staffRepository) {
+                             ServicoRepository servicoRepository, StaffRepository staffRepository,
+                             AuditLogService auditLogService) {
         this.repository = repository;
         this.clienteRepository = clienteRepository;
         this.servicoRepository = servicoRepository;
         this.staffRepository = staffRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional(readOnly = true)
@@ -56,15 +60,19 @@ public class AgendamentoService {
         if (clienteId != null) stream = stream.filter(a -> a.getCliente().getId().equals(clienteId));
         if (staffId != null) stream = stream.filter(a -> a.getStaff() != null && a.getStaff().getId().equals(staffId));
         if (status != null && !status.isBlank()) stream = stream.filter(a -> status.equals(a.getStatus()));
-        return stream.map(this::toResponse).toList();
+        return stream.map(a -> toResponse(a, null)).toList();
     }
 
     @Transactional(readOnly = true)
     public List<PublicSlotResponse> listPublicSlots(Instant de, Instant ate, Long staffId) {
         if (de == null || ate == null) return List.of();
-        Stream<Agendamento> stream = repository.findByDataHoraBetweenOrderByDataHora(de, ate).stream();
+        List<Agendamento> list = repository.findByDataHoraBetweenOrderByDataHora(de, ate);
+        Stream<Agendamento> stream = list.stream().filter(a -> !"CANCELADO".equals(a.getStatus()));
         if (staffId != null) stream = stream.filter(a -> a.getStaff() != null && a.getStaff().getId().equals(staffId));
-        return stream.map(this::toPublicSlotResponse).toList();
+        return stream.sorted((a, b) -> {
+            int c = a.getDataHora().compareTo(b.getDataHora());
+            return c != 0 ? c : (a.getCreatedAt() != null && b.getCreatedAt() != null ? a.getCreatedAt().compareTo(b.getCreatedAt()) : 0);
+        }).map(this::toPublicSlotResponse).toList();
     }
 
     private PublicSlotResponse toPublicSlotResponse(Agendamento entity) {
@@ -80,7 +88,7 @@ public class AgendamentoService {
     }
 
     public Optional<AgendamentoResponse> getById(Long id) {
-        return repository.findById(id).map(this::toResponse);
+        return repository.findById(id).map(e -> toResponse(e, null));
     }
 
     public Optional<AgendamentoResponse> create(AgendamentoRequest request) {
@@ -94,12 +102,23 @@ public class AgendamentoService {
                         entity.setServico(servico);
                         entity.setStaff(staff);
                         entity.setDataHora(request.dataHora());
-                        entity.setTipo(request.tipo());
-                        entity.setStatus(status);
                         Instant end = computeDataHoraFim(request.dataHora(), servico.getDuracaoMinutos());
                         entity.setDataHoraFim(end);
-                        validateFirmeOverlap(request.tipo(), entity.getStaff().getId(), request.dataHora(), end, null);
-                        return toResponse(repository.save(entity));
+                        String tipo = request.tipo();
+                        if (TIPO_ENCAIXE.equalsIgnoreCase(tipo)) {
+                            List<Agendamento> overlapping = repository.findOverlappingByStaffOrderByDataHoraCreatedAt(staff.getId(), request.dataHora(), end);
+                            if (overlapping.isEmpty()) {
+                                tipo = TIPO_FIRME;
+                            }
+                        }
+                        entity.setTipo(tipo);
+                        entity.setStatus(status);
+                        validateFirmeOverlap(tipo, staff.getId(), request.dataHora(), end, null);
+                        Agendamento saved = repository.save(entity);
+                        List<Agendamento> slotFila = repository.findOverlappingByStaffOrderByDataHoraCreatedAt(staff.getId(), saved.getDataHora(), saved.getDataHoraFim());
+                        AgendamentoResponse response = toResponse(saved, slotFila.size());
+                        auditLogService.log("POST /admin/agendamentos", null, response);
+                        return response;
                     })));
     }
 
@@ -110,6 +129,7 @@ public class AgendamentoService {
         if (clienteOpt.isEmpty() || servicoOpt.isEmpty() || staffOpt.isEmpty()) {
             return Optional.empty();
         }
+        Optional<AgendamentoResponse> beforeOpt = repository.findById(id).map(e -> toResponse(e, null));
         return repository.findById(id)
             .map(entity -> {
                 entity.setCliente(clienteOpt.get());
@@ -125,34 +145,52 @@ public class AgendamentoService {
                 validateFirmeOverlap(request.tipo(), entity.getStaff().getId(), request.dataHora(), end, id);
                 return repository.save(entity);
             })
-            .map(this::toResponse);
+            .map(e -> {
+                AgendamentoResponse after = toResponse(e, null);
+                auditLogService.log("PUT /admin/agendamentos", beforeOpt.orElse(null), after);
+                return after;
+            });
     }
 
     public boolean delete(Long id) {
-        if (!repository.existsById(id)) return false;
+        Optional<AgendamentoResponse> before = repository.findById(id).map(e -> toResponse(e, null));
+        if (before.isEmpty()) return false;
         repository.deleteById(id);
+        auditLogService.log("DELETE /admin/agendamentos", before.get(), null);
         return true;
     }
 
     @Transactional
     public Optional<AgendamentoResponse> updateStatus(Long id, String status) {
+        Optional<AgendamentoResponse> beforeOpt = repository.findById(id).map(e -> toResponse(e, null));
         return repository.findById(id)
             .map(entity -> {
                 entity.setStatus(status);
                 return repository.save(entity);
             })
-            .map(this::toResponse);
+            .map(e -> {
+                AgendamentoResponse after = toResponse(e, null);
+                auditLogService.log("PATCH /admin/agendamentos/" + id + "/status", beforeOpt.orElse(null), after);
+                return after;
+            });
     }
 
     @Transactional
     public Optional<AgendamentoResponse> cancelByCliente(Long id, Long clienteId) {
+        Optional<AgendamentoResponse> beforeOpt = repository.findById(id)
+            .filter(entity -> entity.getCliente().getId().equals(clienteId))
+            .map(e -> toResponse(e, null));
         return repository.findById(id)
             .filter(entity -> entity.getCliente().getId().equals(clienteId))
             .map(entity -> {
                 entity.setStatus("CANCELADO");
                 return repository.save(entity);
             })
-            .map(this::toResponse);
+            .map(e -> {
+                AgendamentoResponse after = toResponse(e, null);
+                auditLogService.log("PATCH /agendamentos/" + id + "/cancel", beforeOpt.orElse(null), after);
+                return after;
+            });
     }
 
     private static Instant computeDataHoraFim(Instant start, Integer duracaoMinutos) {
@@ -169,7 +207,7 @@ public class AgendamentoService {
         }
     }
 
-    private AgendamentoResponse toResponse(Agendamento entity) {
+    private AgendamentoResponse toResponse(Agendamento entity, Integer tamanhoFilaSlot) {
         Cliente c = entity.getCliente();
         Servico s = entity.getServico();
         Staff st = entity.getStaff();
@@ -185,7 +223,8 @@ public class AgendamentoService {
             entity.getDataHoraFim(),
             entity.getTipo(),
             entity.getStatus(),
-            entity.getCreatedAt()
+            entity.getCreatedAt(),
+            tamanhoFilaSlot
         );
     }
 }

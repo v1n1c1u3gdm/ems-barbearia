@@ -36,6 +36,9 @@ class AssinaturaServiceTest {
     @Mock
     ServicoRepository servicoRepository;
 
+    @Mock
+    AuditLogService auditLogService;
+
     @InjectMocks
     AssinaturaService service;
 
@@ -99,13 +102,21 @@ class AssinaturaServiceTest {
 
     @Test
     void delete_shouldReturnFalseWhenNotExists() {
-        when(repository.existsById(999L)).thenReturn(false);
+        when(repository.findById(999L)).thenReturn(Optional.empty());
         assertThat(service.delete(999L)).isFalse();
     }
 
     @Test
     void delete_shouldDeleteAndReturnTrueWhenExists() {
-        when(repository.existsById(1L)).thenReturn(true);
+        Cliente cliente = new Cliente();
+        cliente.setId(10L);
+        cliente.setNome("C");
+        Assinatura a = new Assinatura();
+        a.setId(1L);
+        a.setCliente(cliente);
+        a.setServicos(List.of());
+        a.setCreatedAt(Instant.now());
+        when(repository.findById(1L)).thenReturn(Optional.of(a));
         assertThat(service.delete(1L)).isTrue();
         verify(repository).deleteById(1L);
     }

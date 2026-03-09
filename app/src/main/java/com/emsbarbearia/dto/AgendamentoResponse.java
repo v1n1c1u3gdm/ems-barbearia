@@ -16,5 +16,7 @@ public record AgendamentoResponse(
     Instant dataHoraFim,
     String tipo,
     String status,
-    Instant createdAt
+    Instant createdAt,
+    @Schema(description = "Tamanho da fila no slot (preenchido na criação)")
+    Integer tamanhoFilaSlot
 ) {}

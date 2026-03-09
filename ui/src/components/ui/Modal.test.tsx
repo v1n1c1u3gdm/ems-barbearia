@@ -57,4 +57,16 @@ describe('Modal', () => {
     unmount();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+
+  it('calls onClose when clicking the overlay backdrop', async () => {
+    const onClose = vi.fn();
+    render(
+      <Modal open onClose={onClose} title="Título">
+        <p>Conteúdo</p>
+      </Modal>
+    );
+    const overlay = screen.getByRole('dialog');
+    await userEvent.click(overlay);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });

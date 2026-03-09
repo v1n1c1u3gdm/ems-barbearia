@@ -38,7 +38,7 @@ class AgendamentoControllerTest {
 
     @Test
     void list_shouldReturn200AndAllWhenNoFilter() throws Exception {
-        var response = new AgendamentoResponse(1L, 10L, "Cliente A", 1L, "Corte", 1L, "João", Instant.now(), null, "FIRME", "PENDENTE", Instant.now());
+        var response = new AgendamentoResponse(1L, 10L, "Cliente A", 1L, "Corte", 1L, "João", Instant.now(), null, "FIRME", "PENDENTE", Instant.now(), null);
         when(service.list(null, null, null, null, null)).thenReturn(List.of(response));
 
         mockMvc.perform(get("/admin/agendamentos"))
@@ -52,7 +52,7 @@ class AgendamentoControllerTest {
     void list_shouldReturn200WithFullyPopulatedDtosWhenDeAndAteGiven() throws Exception {
         Instant de = Instant.parse("2026-03-09T03:00:00.000Z");
         Instant ate = Instant.parse("2026-03-17T02:59:59.999Z");
-        var response = new AgendamentoResponse(1L, 10L, "Cliente", 1L, "Corte", 1L, "João", Instant.now(), null, "FIRME", "PENDENTE", Instant.now());
+        var response = new AgendamentoResponse(1L, 10L, "Cliente", 1L, "Corte", 1L, "João", Instant.now(), null, "FIRME", "PENDENTE", Instant.now(), null);
         when(service.list(null, null, null, de, ate)).thenReturn(List.of(response));
 
         mockMvc.perform(get("/admin/agendamentos")
@@ -70,7 +70,7 @@ class AgendamentoControllerTest {
 
     @Test
     void getById_shouldReturn200WhenFound() throws Exception {
-        var response = new AgendamentoResponse(1L, 10L, "Cliente", null, null, null, null, Instant.now(), null, "FIRME", "CONFIRMADO", Instant.now());
+        var response = new AgendamentoResponse(1L, 10L, "Cliente", null, null, null, null, Instant.now(), null, "FIRME", "CONFIRMADO", Instant.now(), null);
         when(service.getById(1L)).thenReturn(Optional.of(response));
 
         mockMvc.perform(get("/admin/agendamentos/1"))
@@ -88,7 +88,7 @@ class AgendamentoControllerTest {
 
     @Test
     void create_shouldReturn201WhenClienteExists() throws Exception {
-        var response = new AgendamentoResponse(1L, 10L, "C", 1L, "Corte", 1L, "João", Instant.now(), null, "FIRME", "PENDENTE", Instant.now());
+        var response = new AgendamentoResponse(1L, 10L, "C", 1L, "Corte", 1L, "João", Instant.now(), null, "FIRME", "PENDENTE", Instant.now(), null);
         when(service.create(any())).thenReturn(Optional.of(response));
 
         mockMvc.perform(post("/admin/agendamentos")
@@ -129,7 +129,7 @@ class AgendamentoControllerTest {
 
     @Test
     void updateStatus_shouldReturn200WhenFound() throws Exception {
-        var response = new AgendamentoResponse(1L, 10L, "C", 1L, "Corte", 1L, "João", Instant.now(), null, "FIRME", "APROVADO", Instant.now());
+        var response = new AgendamentoResponse(1L, 10L, "C", 1L, "Corte", 1L, "João", Instant.now(), null, "FIRME", "APROVADO", Instant.now(), null);
         when(service.updateStatus(1L, "APROVADO")).thenReturn(Optional.of(response));
 
         mockMvc.perform(patch("/admin/agendamentos/1/status")

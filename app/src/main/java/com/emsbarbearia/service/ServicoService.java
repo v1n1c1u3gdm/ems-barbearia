@@ -11,9 +11,11 @@ import java.util.Optional;
 @Service
 public class ServicoService {
     private final ServicoRepository repository;
+    private final AuditLogService auditLogService;
 
-    public ServicoService(ServicoRepository repository) {
+    public ServicoService(ServicoRepository repository, AuditLogService auditLogService) {
         this.repository = repository;
+        this.auditLogService = auditLogService;
     }
 
     public List<ServicoResponse> list(String titulo) {
@@ -39,10 +41,13 @@ public class ServicoService {
         entity.setValidoAte(request.validoAte());
         entity.setAtivo(request.ativo() != null ? request.ativo() : true);
         entity.setDuracaoMinutos(request.duracaoMinutos() != null ? request.duracaoMinutos() : 30);
-        return toResponse(repository.save(entity));
+        ServicoResponse response = toResponse(repository.save(entity));
+        auditLogService.log("POST /admin/servicos", null, response);
+        return response;
     }
 
     public Optional<ServicoResponse> update(Long id, ServicoRequest request) {
+        Optional<ServicoResponse> beforeOpt = repository.findById(id).map(this::toResponse);
         return repository.findById(id)
             .map(entity -> {
                 entity.setTitulo(request.titulo());
@@ -53,12 +58,18 @@ public class ServicoService {
                 if (request.duracaoMinutos() != null) entity.setDuracaoMinutos(request.duracaoMinutos());
                 return repository.save(entity);
             })
-            .map(this::toResponse);
+            .map(e -> {
+                ServicoResponse after = toResponse(e);
+                auditLogService.log("PUT /admin/servicos", beforeOpt.orElse(null), after);
+                return after;
+            });
     }
 
     public boolean delete(Long id) {
-        if (!repository.existsById(id)) return false;
+        Optional<ServicoResponse> before = repository.findById(id).map(this::toResponse);
+        if (before.isEmpty()) return false;
         repository.deleteById(id);
+        auditLogService.log("DELETE /admin/servicos", before.get(), null);
         return true;
     }
 

@@ -10,10 +10,13 @@ public class AuthService {
 
     private final AdminUserRepository adminUserRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
 
-    public AuthService(AdminUserRepository adminUserRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(AdminUserRepository adminUserRepository, PasswordEncoder passwordEncoder,
+                       AuditLogService auditLogService) {
         this.adminUserRepository = adminUserRepository;
         this.passwordEncoder = passwordEncoder;
+        this.auditLogService = auditLogService;
     }
 
     public String login(String username, String password) {
@@ -22,6 +25,7 @@ public class AuthService {
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
             throw new InvalidCredentialsException();
         }
+        auditLogService.log("POST /auth/login", null, null);
         return "authenticated";
     }
 

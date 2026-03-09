@@ -38,6 +38,9 @@ class PublicAuthServiceTest {
     @Mock
     JwtPublicService jwtPublicService;
 
+    @Mock
+    AuditLogService auditLogService;
+
     @InjectMocks
     PublicAuthService publicAuthService;
 

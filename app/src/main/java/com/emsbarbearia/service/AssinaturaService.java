@@ -22,12 +22,14 @@ public class AssinaturaService {
     private final AssinaturaRepository repository;
     private final ClienteRepository clienteRepository;
     private final ServicoRepository servicoRepository;
+    private final AuditLogService auditLogService;
 
     public AssinaturaService(AssinaturaRepository repository, ClienteRepository clienteRepository,
-                            ServicoRepository servicoRepository) {
+                            ServicoRepository servicoRepository, AuditLogService auditLogService) {
         this.repository = repository;
         this.clienteRepository = clienteRepository;
         this.servicoRepository = servicoRepository;
+        this.auditLogService = auditLogService;
     }
 
     public List<AssinaturaResponse> list(Long clienteId) {
@@ -50,13 +52,16 @@ public class AssinaturaService {
                     ? servicoRepository.findAllById(request.servicoIds())
                     : new ArrayList<>();
                 entity.setServicos(servicos);
-                return toResponse(repository.save(entity));
+                AssinaturaResponse response = toResponse(repository.save(entity));
+                auditLogService.log("POST /admin/assinaturas", null, response);
+                return response;
             });
     }
 
     public Optional<AssinaturaResponse> update(Long id, AssinaturaRequest request) {
         Optional<Cliente> clienteOpt = clienteRepository.findById(request.clienteId());
         if (clienteOpt.isEmpty()) return Optional.empty();
+        Optional<AssinaturaResponse> beforeOpt = repository.findById(id).map(this::toResponse);
         return repository.findById(id)
             .map(entity -> {
                 entity.setCliente(clienteOpt.get());
@@ -66,12 +71,18 @@ public class AssinaturaService {
                 entity.setServicos(servicos);
                 return repository.save(entity);
             })
-            .map(this::toResponse);
+            .map(e -> {
+                AssinaturaResponse after = toResponse(e);
+                auditLogService.log("PUT /admin/assinaturas", beforeOpt.orElse(null), after);
+                return after;
+            });
     }
 
     public boolean delete(Long id) {
-        if (!repository.existsById(id)) return false;
+        Optional<AssinaturaResponse> before = repository.findById(id).map(this::toResponse);
+        if (before.isEmpty()) return false;
         repository.deleteById(id);
+        auditLogService.log("DELETE /admin/assinaturas", before.get(), null);
         return true;
     }
 

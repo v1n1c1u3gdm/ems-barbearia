@@ -19,10 +19,13 @@ import java.util.stream.Collectors;
 public class StaffService {
     private final StaffRepository repository;
     private final StaffDisponibilidadeRepository disponibilidadeRepository;
+    private final AuditLogService auditLogService;
 
-    public StaffService(StaffRepository repository, StaffDisponibilidadeRepository disponibilidadeRepository) {
+    public StaffService(StaffRepository repository, StaffDisponibilidadeRepository disponibilidadeRepository,
+                        AuditLogService auditLogService) {
         this.repository = repository;
         this.disponibilidadeRepository = disponibilidadeRepository;
+        this.auditLogService = auditLogService;
     }
 
     public List<StaffResponse> list(String nome) {
@@ -46,10 +49,13 @@ public class StaffService {
         entity.setAtivo(request.ativo() != null ? request.ativo() : true);
         Staff saved = repository.save(entity);
         saveHorarios(saved.getId(), request.horarios());
-        return toResponseWithHorarios(saved);
+        StaffResponse response = toResponseWithHorarios(saved);
+        auditLogService.log("POST /admin/staff", null, response);
+        return response;
     }
 
     public Optional<StaffResponse> update(Long id, StaffRequest request) {
+        Optional<StaffResponse> beforeOpt = repository.findById(id).map(this::toResponseWithHorarios);
         return repository.findById(id)
             .map(entity -> {
                 entity.setNome(request.nome());
@@ -61,12 +67,18 @@ public class StaffService {
                 }
                 return saved;
             })
-            .map(this::toResponseWithHorarios);
+            .map(e -> {
+                StaffResponse after = toResponseWithHorarios(e);
+                auditLogService.log("PUT /admin/staff", beforeOpt.orElse(null), after);
+                return after;
+            });
     }
 
     public boolean delete(Long id) {
-        if (!repository.existsById(id)) return false;
+        Optional<StaffResponse> before = repository.findById(id).map(this::toResponseWithHorarios);
+        if (before.isEmpty()) return false;
         repository.deleteById(id);
+        auditLogService.log("DELETE /admin/staff", before.get(), null);
         return true;
     }
 
