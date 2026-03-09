@@ -1,9 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Bell, LogOut } from 'lucide-react';
 import { useEffect,useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { cancelPublicAgendamento,fetchMyAgendamentos } from '@/features/public/api';
+import { fetchMyAgendamentos } from '@/features/public/api';
 import { useOptionalPublicAuth } from '@/features/public/PublicAuthContext';
 
 function formatAgendamentoDate(iso: string): string {
@@ -24,7 +24,6 @@ function statusLabel(status: string): string {
 
 export function PublicHeader() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const auth = useOptionalPublicAuth();
   const [notifOpen, setNotifOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -33,13 +32,6 @@ export function PublicHeader() {
     queryKey: ['public', 'meus-agendamentos'],
     queryFn: fetchMyAgendamentos,
     enabled: !!auth?.hasToken,
-  });
-
-  const cancelMutation = useMutation({
-    mutationFn: cancelPublicAgendamento,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['public', 'meus-agendamentos'] });
-    },
   });
 
   useEffect(() => {
@@ -141,18 +133,6 @@ export function PublicHeader() {
                               {statusLabel(ag.status)}
                             </span>
                           </div>
-                          {ag.tipo === 'FIRME' && ag.status === 'APROVADO' && (
-                            <button
-                              type="button"
-                              onClick={() => cancelMutation.mutate(ag.id)}
-                              disabled={cancelMutation.isPending}
-                              className="mt-1.5 text-xs text-red-400 hover:underline disabled:opacity-50"
-                            >
-                              {cancelMutation.isPending && cancelMutation.variables === ag.id
-                                ? 'Cancelando…'
-                                : 'Cancelar'}
-                            </button>
-                          )}
                         </li>
                       ))}
                     </ul>

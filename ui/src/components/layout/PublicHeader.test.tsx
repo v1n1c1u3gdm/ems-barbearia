@@ -65,7 +65,7 @@ describe('PublicHeader', () => {
     expect(screen.getByRole('button', { name: /Sair/i })).toBeInTheDocument();
   });
 
-  it('when logged in with agendamentos shows Confirmado and Cancelar for firme aprovado', async () => {
+  it('when logged in with agendamentos shows Confirmado in dropdown (cancel is on Agendar page)', async () => {
     const { fetchMyAgendamentos } = await import('@/features/public/api');
     vi.mocked(fetchMyAgendamentos).mockResolvedValueOnce([
       {
@@ -87,7 +87,7 @@ describe('PublicHeader', () => {
     wrapWithAuth(<PublicHeader />);
     await user.click(screen.getByRole('button', { name: /Notificações/i }));
     await screen.findByText('Confirmado');
-    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancelar' })).not.toBeInTheDocument();
   });
 
   it('when logged in shows Pendente and Cancelado labels for agendamentos', async () => {

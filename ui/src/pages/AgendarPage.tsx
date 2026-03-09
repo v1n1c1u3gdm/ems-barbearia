@@ -4,7 +4,12 @@ import { useEffect, useMemo,useState } from 'react';
 import type { HorarioFuncionamentoStaff,StaffResponse } from '@/features/admin/api';
 import { fetchPublicServicos, fetchPublicStaff } from '@/features/admin/api';
 import { AgendarAuthGate } from '@/features/public/AgendarAuthGate';
-import { createPublicAgendamento, fetchMyAgendamentos, fetchPublicSlots } from '@/features/public/api';
+import {
+  cancelPublicAgendamento,
+  createPublicAgendamento,
+  fetchMyAgendamentos,
+  fetchPublicSlots,
+} from '@/features/public/api';
 import { getPublicToken } from '@/features/public/auth';
 import { usePublicAuth } from '@/features/public/PublicAuthContext';
 
@@ -105,6 +110,13 @@ export function AgendarPage() {
     enabled: !!dayRange?.de && !!dayRange?.ate,
   });
 
+  const cancelMutation = useMutation({
+    mutationFn: cancelPublicAgendamento,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['public', 'meus-agendamentos'] });
+    },
+  });
+
   const createMutation = useMutation({
     mutationFn: (body: { servicoId: number; staffId: number; dataHora: string; tipo: string }) =>
       createPublicAgendamento(body),
@@ -195,6 +207,19 @@ export function AgendarPage() {
                 >
                   {statusLabel(ag.status)}
                 </span>
+                {ag.status === 'APROVADO' &&
+                  (ag.tipo === 'FIRME' || !ag.tipo) && (
+                    <button
+                      type="button"
+                      onClick={() => cancelMutation.mutate(ag.id)}
+                      disabled={cancelMutation.isPending}
+                      className="ml-auto text-xs text-red-400 hover:underline disabled:opacity-50"
+                    >
+                      {cancelMutation.isPending && cancelMutation.variables === ag.id
+                        ? 'Cancelando…'
+                        : 'Cancelar'}
+                    </button>
+                  )}
               </li>
             ))}
           </ul>

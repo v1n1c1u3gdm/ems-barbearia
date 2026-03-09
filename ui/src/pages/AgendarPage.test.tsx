@@ -35,6 +35,7 @@ vi.mock('@/features/public/api', async (importOriginal) => {
     ),
     fetchMyAgendamentos: vi.fn(() => Promise.resolve([])),
     fetchPublicSlots: vi.fn(() => Promise.resolve([])),
+    cancelPublicAgendamento: vi.fn(() => Promise.resolve(null)),
   };
 });
 
@@ -144,5 +145,28 @@ describe('AgendarPage', () => {
     expect(screen.getByRole('heading', { name: 'Agenda do dia' })).toBeInTheDocument();
     expect(screen.getByText('Pendente')).toBeInTheDocument();
     expect(screen.getByText('Aprovado')).toBeInTheDocument();
+  });
+
+  it('shows Cancelar in Meus agendamentos for firme aprovado', async () => {
+    const { fetchMyAgendamentos } = await import('@/features/public/api');
+    vi.mocked(fetchMyAgendamentos).mockResolvedValueOnce([
+      {
+        id: 1,
+        clienteId: 10,
+        clienteNome: 'Eu',
+        servicoId: 1,
+        servicoTitulo: 'Barba',
+        staffId: 1,
+        staffNome: 'Emerson',
+        dataHora: '2026-03-10T14:00:00.000Z',
+        dataHoraFim: null,
+        tipo: 'FIRME',
+        status: 'APROVADO',
+        createdAt: '2026-03-09T00:00:00.000Z',
+      },
+    ]);
+    wrap(<AgendarPage />);
+    await screen.findByText('Meus agendamentos');
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument();
   });
 });
