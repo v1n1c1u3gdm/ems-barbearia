@@ -2,6 +2,7 @@ package com.emsbarbearia.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -45,6 +46,26 @@ class AgendamentoControllerTest {
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].id").value(1))
             .andExpect(jsonPath("$[0].clienteNome").value("Cliente A"));
+    }
+
+    @Test
+    void list_shouldReturn200WithFullyPopulatedDtosWhenDeAndAteGiven() throws Exception {
+        Instant de = Instant.parse("2026-03-09T03:00:00.000Z");
+        Instant ate = Instant.parse("2026-03-17T02:59:59.999Z");
+        var response = new AgendamentoResponse(1L, 10L, "Cliente", 1L, "Corte", 1L, "João", Instant.now(), null, "FIRME", "PENDENTE", Instant.now());
+        when(service.list(null, null, null, de, ate)).thenReturn(List.of(response));
+
+        mockMvc.perform(get("/admin/agendamentos")
+                .param("de", de.toString())
+                .param("ate", ate.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].id").value(1))
+            .andExpect(jsonPath("$[0].clienteNome").value("Cliente"))
+            .andExpect(jsonPath("$[0].servicoTitulo").value("Corte"))
+            .andExpect(jsonPath("$[0].staffNome").value("João"));
+
+        verify(service).list(isNull(), isNull(), isNull(), eq(de), eq(ate));
     }
 
     @Test

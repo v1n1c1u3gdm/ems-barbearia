@@ -94,15 +94,14 @@ export function AdminAgendamentosPage() {
   const slotMinutos = config?.slotMinutos ?? DEFAULT_SLOT_MINUTES;
   const isLoading = configLoading || agendamentosLoading;
 
-  const approveMutation = useMutation({
-    mutationFn: (id: number) => updateAgendamentoStatus(id, 'APROVADO'),
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: string }) => updateAgendamentoStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'agendamentos'] });
       setModalAgendamento(null);
     },
   });
 
-  const columns = viewMode === 'day' ? 1 : 7;
   const days = useMemo(() => {
     if (viewMode === 'day') {
       return [selectedDate];
@@ -114,6 +113,15 @@ export function AdminAgendamentosPage() {
       return d;
     });
   }, [viewMode, selectedDate]);
+
+  const openDays = useMemo(() => {
+    return days.filter((day) => {
+      const horario = horarioByDia.get(day.getDay());
+      return !!(horario?.aberto && horario.horaInicio != null && horario.horaFim != null);
+    });
+  }, [days, horarioByDia]);
+
+  const columns = openDays.length;
 
   type DayConfig = { aberto: boolean; startMinutes: number; endMinutes: number; rowCount: number };
   function getDayConfig(day: Date): DayConfig {
@@ -129,7 +137,7 @@ export function AdminAgendamentosPage() {
   }
 
   const { globalStartMinutes, globalRowCount } = useMemo(() => {
-    const configs = days.map((d) => {
+    const configs = openDays.map((d) => {
       const horario = horarioByDia.get(d.getDay());
       if (!horario?.aberto || horario.horaInicio == null || horario.horaFim == null) {
         return { aberto: false as const, startMinutes: 0, endMinutes: 0 };
@@ -147,7 +155,7 @@ export function AdminAgendamentosPage() {
     const start = Math.min(...open.map((c) => c.startMinutes));
     const end = Math.max(...open.map((c) => c.endMinutes));
     return { globalStartMinutes: start, globalRowCount: Math.ceil((end - start) / slotMinutos) };
-  }, [days, slotMinutos, horarioByDia]);
+  }, [openDays, slotMinutos, horarioByDia]);
 
   function formatSlotMinutes(m: number): string {
     const h = Math.floor(m / 60);
@@ -203,7 +211,7 @@ export function AdminAgendamentosPage() {
             Semana
           </button>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => {
@@ -234,11 +242,32 @@ export function AdminAgendamentosPage() {
           >
             →
           </button>
+          <label className="flex items-center gap-2 text-sm text-zinc-400">
+            Ir para:
+            <input
+              type="date"
+              value={`${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (!v) return;
+                const [y, m, d] = v.split('-').map(Number);
+                setSelectedDate(getStartOfDay(new Date(y, m - 1, d)));
+              }}
+              className="rounded border border-zinc-600 bg-zinc-800 px-2 py-1 text-zinc-200"
+            />
+          </label>
         </div>
       </div>
 
       {isLoading && <p className="text-zinc-400">Carregando...</p>}
 
+      {openDays.length === 0 && !isLoading && (
+        <p className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-8 text-center text-zinc-400">
+          Nenhum dia aberto no período.
+        </p>
+      )}
+
+      {openDays.length > 0 && (
       <div className="overflow-x-auto rounded-lg border border-zinc-700 bg-zinc-900">
         <div className="flex min-w-[800px]" style={{ width: 56 + columns * 140 }}>
           <div className="shrink-0 border-r border-zinc-700" style={{ width: 56 }}>
@@ -257,8 +286,7 @@ export function AdminAgendamentosPage() {
               ))}
             </div>
           </div>
-          {days.map((day) => {
-            const dayConfig = getDayConfig(day);
+          {openDays.map((day) => {
             const height = globalRowCount * ROW_HEIGHT;
             return (
               <div key={day.toISOString()} className="flex-1 border-r border-zinc-700 last:border-r-0" style={{ minWidth: 140 }}>
@@ -266,49 +294,43 @@ export function AdminAgendamentosPage() {
                   {formatDateBR(day)}
                 </div>
                 <div className="relative" style={{ height }}>
-                  {dayConfig.aberto ? (
-                    <>
-                      {Array.from({ length: globalRowCount }, (_, i) => (
-                        <div
-                          key={i}
-                          className="border-b border-zinc-800"
-                          style={{ height: ROW_HEIGHT }}
-                        />
-                      ))}
-                      {currentTimePosition(day) != null && (
-                        <div
-                          className="absolute left-0 right-0 z-20 h-0.5 bg-red-500"
-                          style={{ top: currentTimePosition(day)! }}
-                        />
-                      )}
-                      {agendamentos.map((ag) => {
-                        const pos = positionFor(ag, day);
-                        if (!pos) return null;
-                        return (
-                          <button
-                            key={ag.id}
-                            type="button"
-                            onClick={() => setModalAgendamento(ag)}
-                            className={`absolute left-1 right-1 z-10 overflow-hidden rounded border text-left text-xs ${blockStyle(ag)}`}
-                            style={{
-                              top: pos.top,
-                              height: pos.height,
-                              minHeight: 20,
-                            }}
-                          >
-                            <span className="block truncate font-medium">{ag.servicoTitulo ?? '—'}</span>
-                            <span className="block truncate text-white/90">{ag.clienteNome}</span>
-                            <span className="block truncate text-white/70">{ag.staffNome ?? '—'}</span>
-                            <span className="block truncate text-white/70">{ag.status}</span>
-                          </button>
-                        );
-                      })}
-                    </>
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-sm text-zinc-500">
-                      Fechado
-                    </div>
-                  )}
+                  <>
+                    {Array.from({ length: globalRowCount }, (_, i) => (
+                      <div
+                        key={i}
+                        className="border-b border-zinc-800"
+                        style={{ height: ROW_HEIGHT }}
+                      />
+                    ))}
+                    {currentTimePosition(day) != null && (
+                      <div
+                        className="absolute left-0 right-0 z-20 h-0.5 bg-red-500"
+                        style={{ top: currentTimePosition(day)! }}
+                      />
+                    )}
+                    {agendamentos.map((ag) => {
+                      const pos = positionFor(ag, day);
+                      if (!pos) return null;
+                      return (
+                        <button
+                          key={ag.id}
+                          type="button"
+                          onClick={() => setModalAgendamento(ag)}
+                          className={`absolute left-1 right-1 z-10 overflow-hidden rounded border text-left text-xs ${blockStyle(ag)}`}
+                          style={{
+                            top: pos.top,
+                            height: pos.height,
+                            minHeight: 20,
+                          }}
+                        >
+                          <span className="block truncate font-medium">{ag.servicoTitulo ?? '—'}</span>
+                          <span className="block truncate text-white/90">{ag.clienteNome}</span>
+                          <span className="block truncate text-white/70">{ag.staffNome ?? '—'}</span>
+                          <span className="block truncate text-white/70">{ag.status}</span>
+                        </button>
+                      );
+                    })}
+                  </>
                 </div>
               </div>
             );
@@ -316,11 +338,9 @@ export function AdminAgendamentosPage() {
         </div>
         <div className="flex border-t border-zinc-700" style={{ width: 56 + columns * 140 }}>
           <div className="shrink-0 border-r border-zinc-700 py-1 text-center text-xs text-zinc-500" style={{ width: 56 }} />
-          {days.map((day) => {
+          {openDays.map((day) => {
             const dayConfig = getDayConfig(day);
-            const label = dayConfig.aberto
-              ? `${Math.floor(dayConfig.startMinutes / 60)}h – ${Math.floor(dayConfig.endMinutes / 60)}h`
-              : 'Fechado';
+            const label = `${Math.floor(dayConfig.startMinutes / 60)}h – ${Math.floor(dayConfig.endMinutes / 60)}h`;
             return (
               <div key={day.toISOString()} className="flex-1 border-r border-zinc-700 py-1 text-center text-xs text-zinc-500 last:border-r-0" style={{ minWidth: 140 }}>
                 {label}
@@ -329,6 +349,7 @@ export function AdminAgendamentosPage() {
           })}
         </div>
       </div>
+      )}
 
       <Modal
         open={modalAgendamento != null}
@@ -344,14 +365,24 @@ export function AdminAgendamentosPage() {
             <p><span className="text-zinc-500">Tipo:</span> {modalAgendamento.tipo}</p>
             <p><span className="text-zinc-500">Status:</span> {modalAgendamento.status}</p>
             {modalAgendamento.status === 'PENDENTE' && (
-              <button
-                type="button"
-                onClick={() => approveMutation.mutate(modalAgendamento.id)}
-                disabled={approveMutation.isPending}
-                className="rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
-              >
-                {approveMutation.isPending ? 'Aprovando...' : 'Aprovar'}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => updateStatusMutation.mutate({ id: modalAgendamento.id, status: 'APROVADO' })}
+                  disabled={updateStatusMutation.isPending}
+                  className="rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+                >
+                  {updateStatusMutation.isPending ? 'Salvando...' : 'Aprovar'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateStatusMutation.mutate({ id: modalAgendamento.id, status: 'CANCELADO' })}
+                  disabled={updateStatusMutation.isPending}
+                  className="rounded bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-500 disabled:opacity-50"
+                >
+                  {updateStatusMutation.isPending ? 'Salvando...' : 'Rejeitar'}
+                </button>
+              </div>
             )}
           </div>
         )}

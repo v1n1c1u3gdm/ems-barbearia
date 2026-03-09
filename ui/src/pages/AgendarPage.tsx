@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchPublicServicos, fetchPublicStaff } from '@/features/admin/api';
 import type { StaffResponse, HorarioFuncionamentoStaff } from '@/features/admin/api';
 import { getPublicToken, setPublicToken } from '@/features/public/auth';
@@ -46,6 +46,7 @@ function getInitialErrorFromUrl(): string | null {
 }
 
 export function AgendarPage() {
+  const queryClient = useQueryClient();
   const [hasToken, setHasToken] = useState<boolean>(() => !!getPublicToken());
   const [servicoId, setServicoId] = useState<string>('');
   const [staffId, setStaffId] = useState<string>('');
@@ -79,7 +80,7 @@ export function AgendarPage() {
 
   const dayRange = useMemo(() => dayRangeFromDateInput(dataHora), [dataHora]);
   const staffIdNum = staffId ? Number(staffId) : undefined;
-  const { data: daySlots = [] } = useQuery({
+  const { data: daySlots = [], isLoading: daySlotsLoading } = useQuery({
     queryKey: ['public', 'slots', dayRange?.de, dayRange?.ate, staffIdNum],
     queryFn: () =>
       fetchPublicSlots({
@@ -100,6 +101,7 @@ export function AgendarPage() {
       setStaffId('');
       setDataHora('');
       setTipo('FIRME');
+      queryClient.invalidateQueries({ queryKey: ['public', 'slots'] });
     },
     onError: (err: Error) => {
       setError(err.message);
@@ -220,27 +222,50 @@ export function AgendarPage() {
           />
         </div>
 
-        {dayRange && staffId && (
-          <div className="rounded-lg border border-zinc-700 bg-zinc-800/50 p-3">
-            <p className="mb-2 text-sm font-medium text-zinc-300">Agenda do dia (para este profissional)</p>
-            {daySlots.length === 0 ? (
+        {dayRange && (
+          <div className="rounded-lg border border-zinc-700 bg-zinc-900/80 p-4">
+            <h3 className="mb-3 text-sm font-semibold text-zinc-200">
+              Agenda do dia
+              {staffId ? ' (este profissional)' : ''}
+            </h3>
+            {daySlotsLoading ? (
+              <p className="text-sm text-zinc-500">Carregando…</p>
+            ) : daySlots.length === 0 ? (
               <p className="text-sm text-zinc-500">Nenhum agendamento neste dia.</p>
             ) : (
-              <ul className="space-y-1 text-sm text-zinc-400">
+              <ul className="space-y-2">
                 {daySlots.map((slot, i) => (
-                  <li key={i}>
-                    {formatSlotTime(slot.dataHora)}–{slot.dataHoraFim ? formatSlotTime(slot.dataHoraFim) : '?'}{' '}
-                    <span className={slot.tipo === 'FIRME' ? 'text-amber-400' : 'text-zinc-500'}>
+                  <li
+                    key={i}
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded border border-zinc-700 bg-zinc-800/80 px-3 py-2 text-sm"
+                  >
+                    <span className="font-medium text-zinc-200 tabular-nums">
+                      {formatSlotTime(slot.dataHora)}
+                      {slot.dataHoraFim ? ` – ${formatSlotTime(slot.dataHoraFim)}` : ''}
+                    </span>
+                    {slot.staffNome && (
+                      <span className="text-zinc-400">{slot.staffNome}</span>
+                    )}
+                    <span
+                      className={
+                        slot.tipo === 'FIRME'
+                          ? 'rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-400'
+                          : 'rounded bg-zinc-600/50 px-1.5 py-0.5 text-xs text-zinc-400'
+                      }
+                    >
                       {slot.tipo === 'FIRME' ? 'Firme' : 'Encaixe'}
                     </span>
                     {slot.status === 'PENDENTE' && (
-                      <span className="ml-1 text-amber-500/80">(pendente)</span>
+                      <span className="text-amber-500/90">Pendente</span>
+                    )}
+                    {slot.status === 'APROVADO' && (
+                      <span className="text-emerald-500/90">Aprovado</span>
                     )}
                   </li>
                 ))}
               </ul>
             )}
-            <p className="mt-2 text-xs text-zinc-500">
+            <p className="mt-3 text-xs text-zinc-500">
               <strong>Firme:</strong> horário fixo — escolha um horário livre. <strong>Encaixe:</strong> pode ser
               encaixado entre outros agendamentos.
             </p>

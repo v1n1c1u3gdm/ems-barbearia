@@ -13,6 +13,7 @@ import com.emsbarbearia.repository.ServicoRepository;
 import com.emsbarbearia.repository.StaffRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
@@ -40,6 +41,7 @@ public class AgendamentoService {
         this.staffRepository = staffRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<AgendamentoResponse> list(Long clienteId, Long staffId, String status, Instant de, Instant ate) {
         Stream<Agendamento> stream;
         if (de != null && ate != null) {
@@ -57,6 +59,7 @@ public class AgendamentoService {
         return stream.map(this::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
     public List<PublicSlotResponse> listPublicSlots(Instant de, Instant ate, Long staffId) {
         if (de == null || ate == null) return List.of();
         Stream<Agendamento> stream = repository.findByDataHoraBetweenOrderByDataHora(de, ate).stream();
@@ -131,6 +134,7 @@ public class AgendamentoService {
         return true;
     }
 
+    @Transactional
     public Optional<AgendamentoResponse> updateStatus(Long id, String status) {
         return repository.findById(id)
             .map(entity -> {

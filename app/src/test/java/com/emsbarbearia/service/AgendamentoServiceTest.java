@@ -90,6 +90,9 @@ class AgendamentoServiceTest {
         List<AgendamentoResponse> result = service.list(null, null, null, de, ate);
 
         assertThat(result).hasSize(1);
+        assertThat(result.get(0).clienteNome()).isEqualTo("C");
+        assertThat(result.get(0).servicoTitulo()).isEqualTo("Corte");
+        assertThat(result.get(0).staffNome()).isEqualTo("João");
         verify(repository).findByDataHoraBetweenOrderByDataHora(de, ate);
     }
 
