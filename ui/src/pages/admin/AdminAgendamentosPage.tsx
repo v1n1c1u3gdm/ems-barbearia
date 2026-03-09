@@ -364,23 +364,25 @@ export function AdminAgendamentosPage() {
             <p><span className="text-zinc-500">Data/hora:</span> {parseISO(modalAgendamento.dataHora).toLocaleString('pt-BR')}</p>
             <p><span className="text-zinc-500">Tipo:</span> {modalAgendamento.tipo}</p>
             <p><span className="text-zinc-500">Status:</span> {modalAgendamento.status}</p>
-            {modalAgendamento.status === 'PENDENTE' && (
+            {(modalAgendamento.status === 'PENDENTE' || modalAgendamento.status === 'APROVADO') && (
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => updateStatusMutation.mutate({ id: modalAgendamento.id, status: 'APROVADO' })}
-                  disabled={updateStatusMutation.isPending}
-                  className="rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
-                >
-                  {updateStatusMutation.isPending ? 'Salvando...' : 'Aprovar'}
-                </button>
+                {modalAgendamento.status === 'PENDENTE' && (
+                  <button
+                    type="button"
+                    onClick={() => updateStatusMutation.mutate({ id: modalAgendamento.id, status: 'APROVADO' })}
+                    disabled={updateStatusMutation.isPending}
+                    className="rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+                  >
+                    {updateStatusMutation.isPending ? 'Salvando...' : 'Aprovar'}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => updateStatusMutation.mutate({ id: modalAgendamento.id, status: 'CANCELADO' })}
                   disabled={updateStatusMutation.isPending}
                   className="rounded bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-500 disabled:opacity-50"
                 >
-                  {updateStatusMutation.isPending ? 'Salvando...' : 'Rejeitar'}
+                  {updateStatusMutation.isPending ? 'Salvando...' : modalAgendamento.status === 'PENDENTE' ? 'Rejeitar' : 'Cancelar'}
                 </button>
               </div>
             )}
