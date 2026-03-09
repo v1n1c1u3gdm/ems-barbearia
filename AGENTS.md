@@ -86,6 +86,10 @@ docker compose up --build -d
 3. Use `-d` para executar em background.
 4. Verifique se os containers sobem corretamente (logs, health) antes de dar a tarefa por concluída.
 
+### Migrações e seedings na subida do app
+
+Na subida do container da aplicação, o **Liquibase** executa automaticamente os changesets pendentes (migrações de schema e dados em `db/changelog/`). Portanto, **recriar os containers** (`docker compose down && docker compose up --build -d`) garante que migrações e seedings (incluindo `data/`) sejam aplicados ao banco. Não é necessário rodar migrações à parte após o up.
+
 ---
 
 ## REGRA OBRIGATÓRIA: Migrações de banco (Liquibase)
@@ -220,9 +224,30 @@ cd ui && npm run lint
 - [ ] Testes executados sempre com cobertura (backend: `mvn verify`; front: `npm run test:coverage`).
 - [ ] Relatório de cobertura conferido; cobertura mínima de 80% respeitada.
 - [ ] Testes no padrão AAA; assertions claras.
-- [ ] Containers recriados após mudanças: `docker compose down && docker compose up --build -d`.
+- [ ] Containers recriados após mudanças: `docker compose down && docker compose up --build -d` (na subida do app, Liquibase executa migrações e seedings).
 - [ ] Migrações: se alterou `db/changelog/` ou entidades que impactam schema, changesets incluídos no master e containers recriados (para o Liquibase rodar na subida do app).
 - [ ] Lint/format do backend e do front executados e sem erros (front: `cd ui && npm run lint` com ESLint + plugins React).
 - [ ] Se alterou Markdown: `npm run lint:docs` executado e sem erros.
 - [ ] Documentação apenas no README (e em `k3d/README.md` quando for caso de k3d); ADRs em `adrs/`; histórico em CHANGELOG.md.
 - [ ] Nenhum commit ou push realizado sem solicitação explícita.
+- [ ] **Relatório final** apresentado ao usuário (ver abaixo).
+
+---
+
+## Relatório ao final da verificação
+
+**Ao concluir o checklist de verificação, o assistente deve apresentar um mini relatório** com:
+
+1. **Cobertura (backend e front em blocos separados)**
+   - **Backend:** resultado de `mvn verify` (sucesso/falha); percentual de cobertura quando disponível (relatório JaCoCo em `app/target/site/jacoco/index.html`). Ex.: "Sucesso; cobertura X% (linhas/instruções)."
+   - **Frontend:** resultado de `npm run test:coverage` (sucesso/falha); percentual de cobertura (relatório em `ui/coverage/`). Ex.: "Sucesso; cobertura X% statements (e branches/funções se relevante)."
+   - O relatório deve deixar explícito o número ou percentual de cobertura de cada stack, não apenas "sucesso".
+
+2. **Containers**
+   - Status dos serviços após `docker compose up --build -d`: quais estão running (ex.: app, mariadb, ui, proxy).
+   - Confirmação de que os containers foram recriados com `--build` quando houve mudanças no código ou em Dockerfile/docker-compose.
+
+3. **Migrações e seedings**
+   - Informar que, na subida do container da aplicação, o Liquibase executa automaticamente os changesets pendentes (migrações de schema e dados/seed em `db/changelog/`). Recriar os containers garante que migrações e seedings tenham sido aplicados; não é necessário rodar migrações à parte.
+
+O relatório pode ser em formato de tabela ou lista objetiva, desde que cubra os três itens acima.
