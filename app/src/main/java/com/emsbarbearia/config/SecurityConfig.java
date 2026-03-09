@@ -24,6 +24,7 @@ public class SecurityConfig {
             .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.GET, "/auth/public/me").authenticated()
+                .requestMatchers(HttpMethod.GET, "/agendamentos/me").authenticated()
                 .requestMatchers(HttpMethod.POST, "/agendamentos").authenticated()
                 .anyRequest().permitAll());
         return http.build();

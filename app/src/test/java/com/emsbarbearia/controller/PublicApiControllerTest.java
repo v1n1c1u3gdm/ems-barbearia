@@ -1,6 +1,9 @@
 package com.emsbarbearia.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -74,6 +77,24 @@ class PublicApiControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].nome").value("João"));
+    }
+
+    @Test
+    void listMyAgendamentos_shouldReturn200AndListWhenAuthenticated() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new PublicClienteAuthentication(10L));
+        AgendamentoResponse response = new AgendamentoResponse(
+            1L, 10L, "Cliente", 1L, "Corte", 1L, "João",
+            Instant.parse("2025-06-01T10:00:00Z"), null, "FIRME", "PENDENTE", Instant.now());
+        when(agendamentoService.list(eq(10L), isNull(), isNull(), isNull(), isNull())).thenReturn(List.of(response));
+
+        mockMvc.perform(get("/agendamentos/me"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].id").value(1))
+            .andExpect(jsonPath("$[0].servicoTitulo").value("Corte"))
+            .andExpect(jsonPath("$[0].status").value("PENDENTE"));
+
+        verify(agendamentoService).list(10L, null, null, null, null);
     }
 
     @Test

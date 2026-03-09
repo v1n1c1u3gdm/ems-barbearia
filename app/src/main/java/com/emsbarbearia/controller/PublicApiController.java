@@ -53,6 +53,15 @@ public class PublicApiController {
         return staffService.listAtivos();
     }
 
+    @GetMapping("/agendamentos/me")
+    @Operation(summary = "List agendamentos of the authenticated cliente (JWT)")
+    public List<AgendamentoResponse> listMyAgendamentos(@AuthenticationPrincipal Long clienteId) {
+        if (clienteId == null) {
+            return List.of();
+        }
+        return agendamentoService.list(clienteId, null, null, null, null);
+    }
+
     @GetMapping("/agendamentos/slots")
     @Operation(summary = "List slots for a date range (public day agenda); optional staffId filter")
     public List<PublicSlotResponse> listSlots(

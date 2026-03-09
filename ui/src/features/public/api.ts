@@ -125,6 +125,13 @@ export function getAppleOAuthUrl(): string {
   return `${API_BASE}/auth/public/oauth/apple`;
 }
 
+export async function fetchMyAgendamentos(): Promise<AgendamentoResponse[]> {
+  const res = await fetch(`${API_BASE}/agendamentos/me`, { headers: authHeaders() });
+  if (res.status === 401) return [];
+  if (!res.ok) throw new Error('Erro ao carregar seus agendamentos');
+  return res.json() as Promise<AgendamentoResponse[]>;
+}
+
 export async function createPublicAgendamento(body: PublicAgendamentoPayload): Promise<AgendamentoResponse> {
   const res = await fetch(`${API_BASE}/agendamentos`, {
     method: 'POST',

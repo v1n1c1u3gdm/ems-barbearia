@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchPublicServicos, fetchPublicStaff } from '@/features/admin/api';
 import type { StaffResponse, HorarioFuncionamentoStaff } from '@/features/admin/api';
 import { getPublicToken, setPublicToken } from '@/features/public/auth';
-import { createPublicAgendamento, fetchPublicSlots } from '@/features/public/api';
+import { createPublicAgendamento, fetchMyAgendamentos, fetchPublicSlots } from '@/features/public/api';
 import { AgendarAuthGate } from '@/features/public/AgendarAuthGate';
 
 function formatDisponibilidade(horarios: HorarioFuncionamentoStaff[] | undefined): string {
@@ -78,6 +78,12 @@ export function AgendarPage() {
     queryFn: () => fetchPublicStaff(),
   });
 
+  const { data: myAgendamentos = [], isLoading: myAgendamentosLoading } = useQuery({
+    queryKey: ['public', 'meus-agendamentos'],
+    queryFn: fetchMyAgendamentos,
+    enabled: hasToken,
+  });
+
   const dayRange = useMemo(() => dayRangeFromDateInput(dataHora), [dataHora]);
   const staffIdNum = staffId ? Number(staffId) : undefined;
   const { data: daySlots = [], isLoading: daySlotsLoading } = useQuery({
@@ -102,6 +108,7 @@ export function AgendarPage() {
       setDataHora('');
       setTipo('FIRME');
       queryClient.invalidateQueries({ queryKey: ['public', 'slots'] });
+      queryClient.invalidateQueries({ queryKey: ['public', 'meus-agendamentos'] });
     },
     onError: (err: Error) => {
       setError(err.message);
@@ -144,6 +151,47 @@ export function AgendarPage() {
   return (
     <div className="mx-auto max-w-xl px-4 py-12">
       <h1 className="mb-8 text-3xl font-bold text-zinc-100">Agendar horário</h1>
+
+      {myAgendamentosLoading ? (
+        <p className="mb-6 text-sm text-zinc-500">Carregando seus agendamentos…</p>
+      ) : myAgendamentos.length > 0 ? (
+        <section className="mb-8 rounded-lg border border-zinc-700 bg-zinc-900/80 p-4">
+          <h2 className="mb-3 text-lg font-semibold text-zinc-200">Meus agendamentos</h2>
+          <ul className="space-y-2">
+            {myAgendamentos.map((ag) => (
+              <li
+                key={ag.id}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded border border-zinc-700 bg-zinc-800/80 px-3 py-2 text-sm"
+              >
+                <span className="font-medium text-zinc-200">
+                  {new Date(ag.dataHora).toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
+                <span className="text-zinc-400">{ag.servicoTitulo ?? '—'}</span>
+                <span className="text-zinc-400">{ag.staffNome ?? '—'}</span>
+                <span
+                  className={
+                    ag.status === 'PENDENTE'
+                      ? 'rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-400'
+                      : ag.status === 'APROVADO'
+                        ? 'rounded bg-emerald-500/20 px-1.5 py-0.5 text-xs text-emerald-400'
+                        : ag.status === 'CANCELADO'
+                          ? 'rounded bg-zinc-600/50 px-1.5 py-0.5 text-xs text-zinc-400'
+                          : 'rounded bg-zinc-600/50 px-1.5 py-0.5 text-xs text-zinc-400'
+                  }
+                >
+                  {ag.status}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {success && (
         <div className="mb-6 rounded-lg border border-emerald-500/50 bg-emerald-500/10 px-4 py-3 text-emerald-400">
