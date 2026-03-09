@@ -9,6 +9,12 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- **Audit log (ADR 0021):** Registro de ações no banco: tabela `audit_log` (data_hora, acao, estado_anterior,
+  estado_posterior, solicitante, metodo_http, path, status_http). Migração Liquibase 024. `AuditLogService` com
+  solicitante do contexto (`"publico"` / `"cliente:{id}"` / `"admin:{nome}"`); `log()` não propaga exceção.
+  `AuditFilter` (GET/HEAD/OPTIONS) registra leituras; exclusão de actuator e Swagger. Serviços de domínio
+  (Agendamento, Cliente, Servico, Staff, Assinatura, Relacionamento, PublicAuth, Auth, Otp) chamam o serviço em
+  create/update/delete e fluxos de auth.
 - **Configuração da agenda (ADR 0016):** Tabelas `configuracao_agenda` (slot_minutos default 30) e
   `horario_funcionamento` (dia_semana 0–6, aberto, hora_inicio, hora_fim). Migração Liquibase 015 com
   dados iniciais (dom/seg fechado; ter–sex 09:00–19:00; sáb 09:00–16:00). Endpoint
@@ -42,6 +48,9 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - Lint de documentação: script `npm run lint:docs` passa a incluir `CLAUDE.md` e arquivos em `.github/`.
 
 ### Changed
+
+- **Cobertura de testes frontend:** Meta de 80% em statements, branches, functions e lines mantida; exclusão de `**/*.test.{ts,tsx}` e `**/*.spec.{ts,tsx}` do cálculo no Vitest.
+  Novos ou ampliados testes para Modal (clique no backdrop), PageLayout (redirect com hash em `/agendar`), PublicFooter (provérbio e copyright ano 2024), AdminLayout (nav pública na login e link ativo em `/admin/agendamentos`), LandingPage (loading, erro, scroll por hash, descrição padrão de serviço), AgendarPage (validação, erro de API, modo Dia, tipo Encaixe, disponibilidade e “Fechado” ).
 
 - Dashboard administrativo: total de "Promoções" substituído por "Serviços" (campo `servicos` no summary); área "Contatos" substituída por "Relacionamentos" (`/admin/relacionamentos`). AGENTS.md com regras de cobertura obrigatória e migrações de banco.
 - Agendamento: modelo passa a usar `servico_id` e `staff_id`; coluna legada `servico` (string) removida.
