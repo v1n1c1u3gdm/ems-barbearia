@@ -1,6 +1,7 @@
+import { Apple, Globe, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
-import { Globe, Apple, MessageCircle } from 'lucide-react';
-import { register, login, requestOtp, verifyOtp, getGoogleOAuthUrl, getAppleOAuthUrl } from './api';
+
+import { getAppleOAuthUrl,getGoogleOAuthUrl, login, register, requestOtp, verifyOtp } from './api';
 import { setPublicToken } from './auth';
 type Tab = 'choose' | 'register' | 'login' | 'phone';
 

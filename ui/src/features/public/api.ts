@@ -132,6 +132,16 @@ export async function fetchMyAgendamentos(): Promise<AgendamentoResponse[]> {
   return res.json() as Promise<AgendamentoResponse[]>;
 }
 
+export async function cancelPublicAgendamento(id: number): Promise<AgendamentoResponse | null> {
+  const res = await fetch(`${API_BASE}/agendamentos/${id}/cancel`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+  });
+  if (res.status === 403 || res.status === 404) return null;
+  if (!res.ok) throw new Error('Erro ao cancelar');
+  return res.json() as Promise<AgendamentoResponse>;
+}
+
 export async function createPublicAgendamento(body: PublicAgendamentoPayload): Promise<AgendamentoResponse> {
   const res = await fetch(`${API_BASE}/agendamentos`, {
     method: 'POST',

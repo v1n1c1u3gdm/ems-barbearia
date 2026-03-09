@@ -144,6 +144,17 @@ public class AgendamentoService {
             .map(this::toResponse);
     }
 
+    @Transactional
+    public Optional<AgendamentoResponse> cancelByCliente(Long id, Long clienteId) {
+        return repository.findById(id)
+            .filter(entity -> entity.getCliente().getId().equals(clienteId))
+            .map(entity -> {
+                entity.setStatus("CANCELADO");
+                return repository.save(entity);
+            })
+            .map(this::toResponse);
+    }
+
     private static Instant computeDataHoraFim(Instant start, Integer duracaoMinutos) {
         int minutes = duracaoMinutos != null && duracaoMinutos > 0 ? duracaoMinutos : 30;
         return start.plus(Duration.ofMinutes(minutes));

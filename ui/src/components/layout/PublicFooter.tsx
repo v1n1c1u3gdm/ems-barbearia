@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+
 import { CONTACT } from '@/config/contact';
 import { fetchProverbioRandom } from '@/features/admin/api';
 

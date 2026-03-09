@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
+
 import { LandingPage } from './LandingPage';
 
 vi.mock('@/features/admin/api', () => ({

@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo,useState } from 'react';
+
+import type { HorarioFuncionamentoStaff,StaffResponse } from '@/features/admin/api';
 import { fetchPublicServicos, fetchPublicStaff } from '@/features/admin/api';
-import type { StaffResponse, HorarioFuncionamentoStaff } from '@/features/admin/api';
-import { getPublicToken, setPublicToken } from '@/features/public/auth';
-import { createPublicAgendamento, fetchMyAgendamentos, fetchPublicSlots } from '@/features/public/api';
 import { AgendarAuthGate } from '@/features/public/AgendarAuthGate';
+import { createPublicAgendamento, fetchMyAgendamentos, fetchPublicSlots } from '@/features/public/api';
+import { getPublicToken } from '@/features/public/auth';
+import { usePublicAuth } from '@/features/public/PublicAuthContext';
 
 function formatDisponibilidade(horarios: HorarioFuncionamentoStaff[] | undefined): string {
   if (!horarios?.length) return 'Sem disponibilidade cadastrada.';
@@ -39,6 +41,13 @@ function formatSlotTime(iso: string): string {
   return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
+function statusLabel(status: string): string {
+  if (status === 'PENDENTE') return 'Pendente';
+  if (status === 'APROVADO') return 'Confirmado';
+  if (status === 'CANCELADO') return 'Cancelado';
+  return status;
+}
+
 function getInitialErrorFromUrl(): string | null {
   const params = new URLSearchParams(window.location.search);
   const oauthError = params.get('oauth_error');
@@ -47,7 +56,7 @@ function getInitialErrorFromUrl(): string | null {
 
 export function AgendarPage() {
   const queryClient = useQueryClient();
-  const [hasToken, setHasToken] = useState<boolean>(() => !!getPublicToken());
+  const { hasToken, setToken } = usePublicAuth();
   const [servicoId, setServicoId] = useState<string>('');
   const [staffId, setStaffId] = useState<string>('');
   const [dataHora, setDataHora] = useState<string>('');
@@ -59,14 +68,13 @@ export function AgendarPage() {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     if (token) {
-      setPublicToken(token);
+      setToken(token);
       window.history.replaceState({}, '', window.location.pathname);
-      queueMicrotask(() => setHasToken(true));
     }
     if (params.get('oauth_error')) {
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, []);
+  }, [setToken]);
 
   const { data: servicos = [] } = useQuery({
     queryKey: ['public', 'servicos'],
@@ -143,7 +151,7 @@ export function AgendarPage() {
           </div>
         )}
         <p className="mb-6 text-zinc-400">Identifique-se para solicitar seu agendamento.</p>
-        <AgendarAuthGate onAuthenticated={() => setHasToken(true)} />
+        <AgendarAuthGate onAuthenticated={() => setToken(getPublicToken()!)} />
       </div>
     );
   }
@@ -185,7 +193,7 @@ export function AgendarPage() {
                           : 'rounded bg-zinc-600/50 px-1.5 py-0.5 text-xs text-zinc-400'
                   }
                 >
-                  {ag.status}
+                  {statusLabel(ag.status)}
                 </span>
               </li>
             ))}

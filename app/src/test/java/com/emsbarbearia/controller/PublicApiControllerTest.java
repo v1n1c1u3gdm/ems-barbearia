@@ -6,7 +6,9 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -77,6 +79,28 @@ class PublicApiControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].nome").value("João"));
+    }
+
+    @Test
+    void cancelAgendamento_shouldReturn403WhenNotOwner() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new PublicClienteAuthentication(99L));
+        when(agendamentoService.cancelByCliente(eq(1L), eq(99L))).thenReturn(Optional.empty());
+
+        mockMvc.perform(patch("/agendamentos/1/cancel"))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void cancelAgendamento_shouldReturn200WhenOwner() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new PublicClienteAuthentication(10L));
+        AgendamentoResponse response = new AgendamentoResponse(
+            1L, 10L, "Cliente", 1L, "Corte", 1L, "João",
+            Instant.now(), null, "FIRME", "CANCELADO", Instant.now());
+        when(agendamentoService.cancelByCliente(1L, 10L)).thenReturn(Optional.of(response));
+
+        mockMvc.perform(patch("/agendamentos/1/cancel"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("CANCELADO"));
     }
 
     @Test

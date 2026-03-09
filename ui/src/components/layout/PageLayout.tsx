@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom';
+
 import { PublicFooter } from './PublicFooter';
 import { PublicHeader } from './PublicHeader';
 

@@ -1,13 +1,14 @@
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo,useState } from 'react';
+
+import { Modal } from '@/components/ui/Modal';
 import {
+  type AgendamentoResponse,
   fetchAgendamentos,
   fetchConfiguracaoAgenda,
-  updateAgendamentoStatus,
-  type AgendamentoResponse,
   type HorarioFuncionamentoResponse,
+  updateAgendamentoStatus,
 } from '@/features/admin/api';
-import { Modal } from '@/components/ui/Modal';
 
 const ROW_HEIGHT = 40;
 const DEFAULT_SLOT_MINUTES = 30;

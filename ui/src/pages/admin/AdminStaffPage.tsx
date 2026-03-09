@@ -1,18 +1,19 @@
-import { useState, useCallback } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
+import { useCallback,useState } from 'react';
 import DataTable from 'react-data-table-component';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { Modal } from '@/components/ui/Modal';
 import {
+  createStaff,
+  deleteStaff,
   fetchStaff,
   fetchStaffById,
-  createStaff,
-  updateStaff,
-  deleteStaff,
-  type StaffResponse,
-  type StaffRequest,
   type HorarioFuncionamentoStaff,
+  type StaffRequest,
+  type StaffResponse,
+  updateStaff,
 } from '@/features/admin/api';
-import { Modal } from '@/components/ui/Modal';
-import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 

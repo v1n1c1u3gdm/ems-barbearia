@@ -267,6 +267,33 @@ class AgendamentoServiceTest {
     }
 
     @Test
+    void cancelByCliente_shouldReturnEmptyWhenNotOwner() {
+        Cliente owner = cliente(10L, "Owner");
+        Cliente other = cliente(99L, "Other");
+        Agendamento ag = agendamento(1L, owner, servico(1L, "Corte", 30), staff(1L, "João"), Instant.now(), "FIRME", "APROVADO");
+        when(repository.findById(1L)).thenReturn(Optional.of(ag));
+
+        assertThat(service.cancelByCliente(1L, 99L)).isEmpty();
+        verify(repository).findById(1L);
+    }
+
+    @Test
+    void cancelByCliente_shouldUpdateStatusWhenOwner() {
+        Cliente c = cliente(10L, "C");
+        Servico s = servico(1L, "Corte", 30);
+        Staff st = staff(1L, "João");
+        Agendamento ag = agendamento(1L, c, s, st, Instant.now(), "FIRME", "APROVADO");
+        when(repository.findById(1L)).thenReturn(Optional.of(ag));
+        when(repository.save(any(Agendamento.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Optional<AgendamentoResponse> result = service.cancelByCliente(1L, 10L);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().status()).isEqualTo("CANCELADO");
+        verify(repository).save(any(Agendamento.class));
+    }
+
+    @Test
     void delete_shouldReturnFalseWhenNotExists() {
         when(repository.existsById(999L)).thenReturn(false);
         assertThat(service.delete(999L)).isFalse();

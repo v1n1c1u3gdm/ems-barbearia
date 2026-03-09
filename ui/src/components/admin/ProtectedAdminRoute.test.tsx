@@ -1,8 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { vi } from 'vitest';
-import { ProtectedAdminRoute } from './ProtectedAdminRoute';
+
 import { isAuthenticated } from '@/config/auth';
+
+import { ProtectedAdminRoute } from './ProtectedAdminRoute';
 
 vi.mock('@/config/auth', () => ({
   isAuthenticated: vi.fn(),

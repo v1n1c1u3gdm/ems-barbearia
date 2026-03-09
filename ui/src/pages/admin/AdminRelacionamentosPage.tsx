@@ -1,17 +1,18 @@
-import { useState, useCallback } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, Eye, Instagram,Mail, MessageCircle } from 'lucide-react';
+import { useCallback,useState } from 'react';
 import DataTable from 'react-data-table-component';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  fetchRelacionamentos,
-  fetchRelacionamentoById,
-  updateRelacionamentoStatus,
-  fetchAgendamentos,
-  type RelacionamentoResponse,
-  type CanalRelacionamento,
-  type StatusRelacionamento,
-} from '@/features/admin/api';
+
 import { Modal } from '@/components/ui/Modal';
-import { ArrowLeft, Eye, MessageCircle, Mail, Instagram } from 'lucide-react';
+import {
+  type CanalRelacionamento,
+  fetchAgendamentos,
+  fetchRelacionamentoById,
+  fetchRelacionamentos,
+  type RelacionamentoResponse,
+  type StatusRelacionamento,
+  updateRelacionamentoStatus,
+} from '@/features/admin/api';
 
 const CANAIS: { key: CanalRelacionamento; label: string; description: string; icon: typeof Mail }[] = [
   { key: 'WHATSAPP', label: 'WhatsApp', description: 'Relacionamentos por WhatsApp', icon: MessageCircle },

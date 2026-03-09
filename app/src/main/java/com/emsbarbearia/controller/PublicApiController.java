@@ -79,6 +79,19 @@ public class PublicApiController {
             .orElse(ResponseEntity.notFound().build());
     }
 
+    @PatchMapping("/agendamentos/{id}/cancel")
+    @Operation(summary = "Cancel own agendamento (cliente must own it)")
+    public ResponseEntity<AgendamentoResponse> cancelAgendamento(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Long clienteId) {
+        if (clienteId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return agendamentoService.cancelByCliente(id, clienteId)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+    }
+
     @PostMapping("/agendamentos")
     @Operation(summary = "Create agendamento (status PENDENTE); requires Bearer JWT, cliente from token")
     public ResponseEntity<AgendamentoResponse> createAgendamento(

@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+
 import { fetchDashboardSummary } from '@/features/admin/api';
 
 const ADMIN_AREAS = [

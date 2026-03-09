@@ -1,9 +1,12 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi } from 'vitest';
-import { AgendarPage } from './AgendarPage';
+
 import { getPublicToken } from '@/features/public/auth';
+import { PublicAuthProvider } from '@/features/public/PublicAuthContext';
+
+import { AgendarPage } from './AgendarPage';
 
 vi.mock('@/features/public/auth', () => ({
   getPublicToken: vi.fn(() => 'fake-token'),
@@ -30,6 +33,7 @@ vi.mock('@/features/public/api', async (importOriginal) => {
         createdAt: '2025-01-01T00:00:00Z',
       })
     ),
+    fetchMyAgendamentos: vi.fn(() => Promise.resolve([])),
     fetchPublicSlots: vi.fn(() => Promise.resolve([])),
   };
 });
@@ -62,7 +66,7 @@ function wrap(ui: React.ReactNode) {
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      {ui}
+      <PublicAuthProvider>{ui}</PublicAuthProvider>
     </QueryClientProvider>
   );
 }
@@ -106,5 +110,39 @@ describe('AgendarPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/Agendamento solicitado com sucesso/)).toBeInTheDocument();
     });
+  });
+
+  it('shows day agenda with slots when date is set', async () => {
+    const { fetchPublicSlots } = await import('@/features/public/api');
+    vi.mocked(fetchPublicSlots).mockResolvedValueOnce([
+      {
+        staffId: 1,
+        staffNome: 'João',
+        dataHora: '2025-06-01T10:00:00.000Z',
+        dataHoraFim: '2025-06-01T10:30:00.000Z',
+        tipo: 'FIRME',
+        status: 'PENDENTE',
+      },
+      {
+        staffId: 1,
+        staffNome: 'João',
+        dataHora: '2025-06-01T14:00:00.000Z',
+        dataHoraFim: null,
+        tipo: 'ENCAIXE',
+        status: 'APROVADO',
+      },
+    ]);
+    const user = userEvent.setup();
+    wrap(<AgendarPage />);
+    await screen.findByLabelText(/Serviço/);
+    const dataHoraInput = screen.getByLabelText(/Data e hora/);
+    await user.clear(dataHoraInput);
+    await user.type(dataHoraInput, '2025-06-01T10:00');
+    await waitFor(() => {
+      expect(screen.getByText('Agenda do dia')).toBeInTheDocument();
+    });
+    expect(screen.getByRole('heading', { name: 'Agenda do dia' })).toBeInTheDocument();
+    expect(screen.getByText('Pendente')).toBeInTheDocument();
+    expect(screen.getByText('Aprovado')).toBeInTheDocument();
   });
 });

@@ -1,22 +1,28 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { PageLayout } from '@/components/layout/PageLayout';
-import { AdminLayout } from '@/components/layout/AdminLayout';
+
 import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
-import { LandingPage } from '@/pages/LandingPage';
-import { AdminLoginPage } from '@/pages/AdminLoginPage';
-import { AdminDashboardPage } from '@/pages/AdminDashboardPage';
-import { AdminRelacionamentosPage } from '@/pages/admin/AdminRelacionamentosPage';
-import { AdminServicosPage } from '@/pages/admin/AdminServicosPage';
-import { AdminStaffPage } from '@/pages/admin/AdminStaffPage';
+import { AdminLayout } from '@/components/layout/AdminLayout';
+import { PageLayout } from '@/components/layout/PageLayout';
+import { PublicAuthProvider } from '@/features/public/PublicAuthContext';
 import { AdminAgendamentosPage } from '@/pages/admin/AdminAgendamentosPage';
 import { AdminAssinaturasPage } from '@/pages/admin/AdminAssinaturasPage';
 import { AdminClientesPage } from '@/pages/admin/AdminClientesPage';
+import { AdminRelacionamentosPage } from '@/pages/admin/AdminRelacionamentosPage';
+import { AdminServicosPage } from '@/pages/admin/AdminServicosPage';
+import { AdminStaffPage } from '@/pages/admin/AdminStaffPage';
+import { AdminDashboardPage } from '@/pages/AdminDashboardPage';
+import { AdminLoginPage } from '@/pages/AdminLoginPage';
 import { AgendarPage } from '@/pages/AgendarPage';
+import { LandingPage } from '@/pages/LandingPage';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <PageLayout />,
+    element: (
+      <PublicAuthProvider>
+        <PageLayout />
+      </PublicAuthProvider>
+    ),
     children: [
       { index: true, element: <LandingPage /> },
       { path: 'agendar', element: <AgendarPage /> },

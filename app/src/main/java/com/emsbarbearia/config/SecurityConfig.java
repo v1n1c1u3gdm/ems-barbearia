@@ -25,6 +25,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.GET, "/auth/public/me").authenticated()
                 .requestMatchers(HttpMethod.GET, "/agendamentos/me").authenticated()
+                .requestMatchers(HttpMethod.PATCH, "/agendamentos/*/cancel").authenticated()
                 .requestMatchers(HttpMethod.POST, "/agendamentos").authenticated()
                 .anyRequest().permitAll());
         return http.build();
