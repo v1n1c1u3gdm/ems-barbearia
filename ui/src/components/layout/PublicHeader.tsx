@@ -64,24 +64,24 @@ export function PublicHeader() {
           />
         </Link>
         <div className="flex items-center gap-6">
-          <a
-            href="#inicio"
+          <Link
+            to={{ pathname: '/', hash: 'inicio' }}
             className="text-sm text-zinc-300 transition hover:text-white"
           >
             Início
-          </a>
-          <a
-            href="#servicos"
+          </Link>
+          <Link
+            to={{ pathname: '/', hash: 'servicos' }}
             className="text-sm text-zinc-300 transition hover:text-white"
           >
             Serviços
-          </a>
-          <a
-            href="#contato"
+          </Link>
+          <Link
+            to={{ pathname: '/', hash: 'contato' }}
             className="text-sm text-zinc-300 transition hover:text-white"
           >
             Contato
-          </a>
+          </Link>
           <Link
             to="/agendar"
             className="rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-amber-400"

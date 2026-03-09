@@ -51,9 +51,9 @@ describe('PublicHeader', () => {
 
   it('renders nav links Início, Serviços, Contato', () => {
     wrap(<PublicHeader />);
-    expect(screen.getByRole('link', { name: 'Início' })).toHaveAttribute('href', '#inicio');
-    expect(screen.getByRole('link', { name: 'Serviços' })).toHaveAttribute('href', '#servicos');
-    expect(screen.getByRole('link', { name: 'Contato' })).toHaveAttribute('href', '#contato');
+    expect(screen.getByRole('link', { name: 'Início' })).toHaveAttribute('href', '/#inicio');
+    expect(screen.getByRole('link', { name: 'Serviços' })).toHaveAttribute('href', '/#servicos');
+    expect(screen.getByRole('link', { name: 'Contato' })).toHaveAttribute('href', '/#contato');
   });
 
   it('when logged in shows notifications button and logout in dropdown', async () => {

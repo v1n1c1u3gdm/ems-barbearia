@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
@@ -85,11 +85,15 @@ describe('AgendarPage', () => {
     expect(screen.getByText(/Identifique-se para solicitar/)).toBeInTheDocument();
   });
 
-  it('renders booking form when authenticated', async () => {
+  it('renders calendar and booking form when authenticated', async () => {
     wrap(<AgendarPage />);
     await waitFor(() => {
       expect(screen.getByLabelText(/Serviço/)).toBeInTheDocument();
     });
+    expect(screen.getByRole('button', { name: 'Dia' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Semana' })).toBeInTheDocument();
+    expect(screen.getByText('Horário')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Ir para/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Profissional/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Data e hora/)).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: /Firme/ })).toBeInTheDocument();
@@ -168,5 +172,41 @@ describe('AgendarPage', () => {
     wrap(<AgendarPage />);
     await screen.findByText('Meus agendamentos');
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument();
+  });
+
+  it('opens modal from calendar block and shows Cancelar for firme aprovado', async () => {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now.getFullYear(), now.getMonth(), diff, 0, 0, 0, 0);
+    const wed = new Date(monday);
+    wed.setDate(monday.getDate() + 2);
+    wed.setHours(14, 0, 0, 0);
+    const dataHora = wed.toISOString();
+
+    const { fetchMyAgendamentos } = await import('@/features/public/api');
+    vi.mocked(fetchMyAgendamentos).mockResolvedValueOnce([
+      {
+        id: 1,
+        clienteId: 10,
+        clienteNome: 'Eu',
+        servicoId: 1,
+        servicoTitulo: 'Barba',
+        staffId: 1,
+        staffNome: 'Emerson',
+        dataHora,
+        dataHoraFim: null,
+        tipo: 'FIRME',
+        status: 'APROVADO',
+        createdAt: '2026-03-09T00:00:00.000Z',
+      },
+    ]);
+    const user = userEvent.setup();
+    wrap(<AgendarPage />);
+    const calendarBlock = await screen.findByRole('button', { name: /Barba/ });
+    await user.click(calendarBlock);
+    const dialog = screen.getByRole('dialog', { name: 'Meu agendamento' });
+    expect(within(dialog).getByText('Emerson')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Cancelar' })).toBeInTheDocument();
   });
 });

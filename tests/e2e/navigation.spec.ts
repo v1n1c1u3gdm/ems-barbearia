@@ -49,6 +49,57 @@ test.describe('Navegação pública', () => {
   });
 });
 
+// Para rodar: suba o app (docker compose ou cd ui && npm run dev) e execute no diretório tests:
+//   npm run test -- --grep "Menu a partir"
+// Contra Docker na porta 80: BASE_URL=http://localhost npm run test -- --grep "Menu a partir"
+// Se o router estiver quebrado, estes testes falham: pathname continua /agendar ou a seção da landing não aparece.
+test.describe('Menu a partir de /agendar (router deve navegar para / com hash)', () => {
+  test('em /agendar, clicar em Contato navega para /#contato e exibe seção da landing', async ({
+    page,
+  }) => {
+    await page.goto('/agendar');
+    await expect(page).toHaveURL(/\/agendar/);
+    await page.getByRole('navigation').getByRole('link', { name: 'Contato' }).click();
+    const url = new URL(page.url());
+    expect(url.pathname).toBe('/');
+    expect(url.hash).toBe('#contato');
+    await expect(page.getByRole('heading', { name: 'Agende seu horário' })).toBeVisible();
+    await expect(page.locator('#contato')).toBeInViewport();
+  });
+
+  test('em /agendar, clicar em Serviços navega para /#servicos e exibe seção da landing', async ({
+    page,
+  }) => {
+    await page.goto('/agendar');
+    await expect(page).toHaveURL(/\/agendar/);
+    await page.getByRole('navigation').getByRole('link', { name: 'Serviços' }).click();
+    const url = new URL(page.url());
+    expect(url.pathname).toBe('/');
+    expect(url.hash).toBe('#servicos');
+    await expect(page.getByRole('heading', { name: 'Nossos serviços' })).toBeVisible();
+    await expect(page.locator('#servicos')).toBeInViewport();
+  });
+
+  test('em /agendar, clicar em Início navega para /#inicio e exibe seção da landing', async ({
+    page,
+  }) => {
+    await page.goto('/agendar');
+    await expect(page).toHaveURL(/\/agendar/);
+    await page
+      .getByRole('navigation')
+      .locator('a[href*="inicio"]')
+      .filter({ hasText: 'Início' })
+      .click();
+    const url = new URL(page.url());
+    expect(url.pathname).toBe('/');
+    expect(url.hash).toBe('#inicio');
+    await expect(
+      page.getByRole('heading', { name: /barbearia para quem dita o próprio ritmo/i })
+    ).toBeVisible();
+    await expect(page.locator('#inicio')).toBeInViewport();
+  });
+});
+
 test.describe('Rotas diretas', () => {
   test('acesso a /admin redireciona para login', async ({ page }) => {
     await page.goto('/admin');

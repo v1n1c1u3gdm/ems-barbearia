@@ -1,10 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { InstagramCarousel } from '@/components/InstagramCarousel';
 import { CONTACT } from '@/config/contact';
 import { fetchPublicServicos } from '@/features/admin/api';
 
 export function LandingPage() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const hash = location.hash?.slice(1);
+    if (!hash) return;
+    const el = document.getElementById(hash);
+    if (el) {
+      requestAnimationFrame(() => {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  }, [location.pathname, location.hash]);
+
   const { data: servicos = [], isLoading, isError } = useQuery({
     queryKey: ['public', 'servicos', 'landing'],
     queryFn: () => fetchPublicServicos(),
